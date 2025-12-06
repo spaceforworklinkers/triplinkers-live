@@ -1,12 +1,27 @@
-import React from 'react'
 
-const page = () => {
+import React from 'react';
+import Hero from '@/components/Hero';
+import FeaturedPackages from '@/components/FeaturedPackages';
+import Highlights from '@/components/Highlights';
+import Calculator from '@/components/Calculator'; 
+import InquiryForm from '@/components/InquiryForm';
+import WhyBookWithUs from '@/components/WhyBookWithUs';
+import Testimonials from '@/components/Testimonials';
+import FAQ from '@/components/FAQ';
+
+const Home = () => {
   return (
-    <div>
-      <h1 className='text-4xl font-semibold m-10' >Welcome to the Home Page</h1>
-      <p>This is the main landing page of the application.</p>
-    </div>
-  )
-}
+    <>
+      <Hero />
+      <FeaturedPackages />
+      <Highlights />
+      <Calculator />
+      <InquiryForm />
+      <WhyBookWithUs />
+      <Testimonials />
+      <FAQ />
+    </>
+  );
+};
 
-export default page
+export default Home;

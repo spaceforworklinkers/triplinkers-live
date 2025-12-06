@@ -1,139 +1,113 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plane, Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 
 const images = [
-  {
-    url: "https://images.unsplash.com/photo-1512453979798-5ea904ac66de?q=80&w=2000&auto=format&fit=crop",
-    alt: "Burj Khalifa Skyline",
-    title: "Experience the Heights",
-    subtitle: "Discover the iconic Burj Khalifa"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1546412414-e1885259563a?q=80&w=2000&auto=format&fit=crop",
-    alt: "Dubai Desert Safari",
-    title: "Desert Adventures",
-    subtitle: "Thrilling safari experiences await"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=2000&auto=format&fit=crop",
-    alt: "Dubai Marina Night",
-    title: "Magical Marina",
-    subtitle: "Cruise through the heart of modern Dubai"
-  }
+  "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1498496294664-d9372eb521f3?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1580740150373-fb74d45e42c9?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1504870712357-65ea720d6078?auto=format&fit=crop&w=2000&q=80",
 ];
 
-const Hero = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function Hero() {
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
+    const t = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % images.length);
     }, 5000);
-    return () => clearInterval(timer);
+    return () => clearInterval(t);
   }, []);
 
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-
   return (
-    <section className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900">
-      {/* Carousel Images */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="absolute inset-0 z-0"
-        >
-          <div className="absolute inset-0 bg-black/40 z-10" /> {/* Dark overlay */}
-          <img
-            src={images[currentIndex].url}
-            alt={images[currentIndex].alt}
-            className="w-full h-full object-cover"
-          />
-        </motion.div>
-      </AnimatePresence>
+    <section className="relative w-full overflow-hidden min-h-[380px] md:min-h-[480px] lg:min-h-[520px] bg-black">
 
-      {/* Content */}
-      <div className="absolute inset-0 z-20 flex items-center justify-center">
-        <div className="container mx-auto px-4 text-center">
+      {/* Background images stack (NO BLACK FLASH) */}
+      <div className="absolute inset-0 z-0">
+        {images.map((img, idx) => (
           <motion.div
-            key={`text-${currentIndex}`}
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-4xl mx-auto"
+            key={idx}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: current === idx ? 1 : 0 }}
+            transition={{ duration: 1.2 }}
+            className="absolute inset-0"
           >
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white mb-6">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">Premium Dubai Experiences</span>
-            </div>
-
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
-              Your Dream Dubai <br />
-              <span className="text-orange-400">Adventure Awaits</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto drop-shadow-md">
-              {images[currentIndex].subtitle}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() =>
-                  document.getElementById("inquiry-form")?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <Plane className="w-5 h-5" />
-                Get quote for Dubai Trip
-              </button>
-              <button
-                onClick={() =>
-                  document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-teal-600 transition-all duration-300"
-              >
-                Estimate Your Trip Cost
-              </button>
-            </div>
+            <Image
+              src={img}
+              alt="Dubai Background"
+              fill
+              className="object-cover"
+              priority={idx === current}
+            />
+            <div className="absolute inset-0 bg-black/40" />
           </motion.div>
-        </div>
+        ))}
       </div>
 
-      {/* Controls */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors"
-      >
-        <ChevronLeft className="w-8 h-8" />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-white/20 hover:bg-white/40 text-white transition-colors"
-      >
-        <ChevronRight className="w-8 h-8" />
-      </button>
+      {/* Foreground Content */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4">
 
-      {/* Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-        {images.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentIndex(idx)}
-            className={`w-2.5 h-2.5 rounded-full transition-all ${
-              idx === currentIndex ? "bg-white w-8" : "bg-white/50 hover:bg-white/80"
-            }`}
-          />
-        ))}
+        <h1 className="text-white text-3xl md:text-5xl font-bold text-center drop-shadow-xl mb-3">
+          Plan Your Perfect Dubai Trip
+        </h1>
+
+        <p className="text-white/90 text-center mb-8 max-w-xl text-sm md:text-lg">
+          Personalized Dubai itineraries, cost estimations, and intelligent trip planning.
+        </p>
+
+        {/* Filter Card */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl p-4 md:p-6 w-full max-w-4xl border border-white/40">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            {/* Destination */}
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-700 mb-1">Destination</label>
+              <input
+                type="text"
+                placeholder="Dubai"
+                className="px-3 py-2 rounded-lg border border-gray-300 bg-white/60 focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+              />
+            </div>
+
+            {/* Budget Dropdown */}
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-700 mb-1">Budget</label>
+              <select className="px-3 py-2 rounded-lg border border-gray-300 bg-white/60 text-gray-700 focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
+                <option>Economical</option>
+                <option>Mid-range</option>
+                <option>Luxury</option>
+              </select>
+            </div>
+
+            {/* Trip Type Dropdown */}
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-700 mb-1">Travel Type</label>
+              <select className="px-3 py-2 rounded-lg border border-gray-300 bg-white/60 text-gray-700 focus:border-teal-600 focus:ring-1 focus:ring-teal-600">
+                <option>Family</option>
+                <option>Adventure</option>
+                <option>Honeymoon</option>
+                <option>Friends</option>
+                <option>Business</option>
+                <option>Solo</option>
+              </select>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex items-end">
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg">
+                <Search className="w-4 h-4" />
+                Generate Plan
+              </button>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

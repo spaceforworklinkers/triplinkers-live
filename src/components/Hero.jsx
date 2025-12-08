@@ -6,10 +6,7 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 
 const images = [
-  "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=2000&q=80",
-  "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=2000&q=80",
-  "https://images.unsplash.com/photo-1498496294664-d9372eb521f3?auto=format&fit=crop&w=2000&q=80",
-  "https://images.unsplash.com/photo-1580740150373-fb74d45e42c9?auto=format&fit=crop&w=2000&q=80",
+  
   "https://images.unsplash.com/photo-1504870712357-65ea720d6078?auto=format&fit=crop&w=2000&q=80",
 ];
 

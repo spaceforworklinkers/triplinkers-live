@@ -96,49 +96,58 @@ export default function UniversalLeadModal({
   const WEB3FORMS_ACCESS_KEY = "XXX";
 
   // submit handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setErrorMsg("");
+  setLoading(true);
 
-    try {
-      const formElement = e.target;
-      const formData = new FormData(formElement);
+  try {
+    const formElement = e.target;
+    const formData = new FormData(formElement);
 
-      formData.append("access_key", WEB3FORMS_ACCESS_KEY);
-      formData.append("subject", "TripLinkers Lead - Modal");
-      if (typeof window !== "undefined") {
-        formData.append("url", window.location.href);
-        formData.append("referrer", document.referrer || "");
-      }
+    // Convert formData to JSON
+    const body = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      from: formData.get("from"),
+      destination: formData.get("destination"),
+      days: formData.get("days"),
+      travelers: formData.get("travelers"),
+      budget: formData.get("budget"),
+      message: formData.get("message"),
+    };
 
-      const res = await fetch(WEB3FORMS_ENDPOINT, {
-        method: "POST",
-        body: formData,
-      });
+    // Send to NEXT.js API → Supabase
+    const res = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-      const json = await res.json().catch(() => ({}));
+    const json = await res.json();
 
-      if (!res.ok) {
-        const msg = json?.message || `Submission failed, status ${res.status}`;
-        throw new Error(msg);
-      }
-
-      // success
-      setShowSuccess(true);
-      onSuccess && onSuccess();
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        setLoading(false);
-        closeAll();
-      }, 2000);
-    } catch (err) {
-      console.error("Web3Forms submit error:", err);
-      setErrorMsg(err?.message || "Submission failed, please try again");
-      setLoading(false);
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || "Failed to submit");
     }
-  };
+
+    // success state
+    setShowSuccess(true);
+    onSuccess && onSuccess();
+
+    setTimeout(() => {
+      setShowSuccess(false);
+      setLoading(false);
+      closeAll();
+      formElement.reset();
+    }, 2000);
+  } catch (err) {
+    console.error("Lead submit error:", err);
+    setErrorMsg(err?.message || "Submission failed, please try again");
+    setLoading(false);
+  }
+};
+
 
   // motion offsets
   const initialY = isMobile ? 40 : 8;

@@ -1,6 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { verifyAdminSession } from "@/lib/adminAuth";
 
 function StatusBadge({ status }) {
   const colors = {
@@ -11,106 +12,113 @@ function StatusBadge({ status }) {
   };
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.new}`}>
-      {status ? status.replace("_", " ") : "new"}
+      {status.replace("_", " ")}
     </span>
   );
 }
 
-export default async function LeadsPage({ searchParams }) {
-  const session = verifyAdminSession();
-  if (!session.authenticated) return null;
+export default function LeadsPage() {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "",
+    destination: "",
+    budget: "",
+  });
 
-  // Read filters from query
-  const page = Number(searchParams.page || 1);
-  const q = (searchParams.search || "").trim();
-  const status = searchParams.status || "";
-  const destination = searchParams.destination || "";
-  const budget = searchParams.budget || "";
-  const limit = 12;
-  const from = (page - 1) * limit;
+  // Fetch leads from API
+  async function loadLeads() {
+    setLoading(true);
 
-  // Build supabase query
-  let query = supabaseAdmin
-    .from("leads")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false });
+    const params = new URLSearchParams(filters).toString();
+    const res = await fetch(`/api/leads?${params}`, { cache: "no-store" });
 
-  if (q) {
-    // search by name, email, phone
-    // Using ilike for simple fuzzy search
-    const like = `%${q}%`;
-    query = query.or(`name.ilike.${like},email.ilike.${like},phone.ilike.${like}`);
+    const json = await res.json();
+    setLeads(json.leads || []);
+
+    setLoading(false);
   }
 
-  if (status) {
-    query = query.eq("status", status);
-  }
+  useEffect(() => {
+    loadLeads();
+  }, []);
 
-  if (destination) {
-    query = query.ilike("destination", `%${destination}%`);
-  }
-
-  if (budget) {
-    query = query.ilike("budget", `%${budget}%`);
-  }
-
-  const { data: leads = [], count } = await query.range(from, from + limit - 1);
-
-  const totalPages = Math.max(1, Math.ceil((count || 0) / limit));
-
-  // Build query string for export link and pagination links
-  const qs = (overrides = {}) => {
-    const params = new URLSearchParams({
-      ...(q ? { search: q } : {}),
-      ...(status ? { status } : {}),
-      ...(destination ? { destination } : {}),
-      ...(budget ? { budget } : {}),
-      ...(overrides.page ? { page: String(overrides.page) } : {}),
+  // Handle status update
+  async function updateStatus(leadId, newStatus) {
+    await fetch(`/api/leads/status`, {
+      method: "POST",
+      body: JSON.stringify({ id: leadId, status: newStatus }),
+      headers: { "Content-Type": "application/json" },
     });
-    return `?${params.toString()}`;
-  };
+
+    loadLeads(); // reload table
+  }
+
+  // Handle delete
+  async function deleteLead(id) {
+    if (!confirm("Delete this lead permanently?")) return;
+
+    await fetch(`/api/leads/delete?id=${id}`, {
+      method: "POST",
+    });
+
+    loadLeads();
+  }
+
+  // Handle search + filters
+  async function applyFilters(e) {
+    e.preventDefault();
+    loadLeads();
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-semibold">Leads Dashboard</h1>
+      <h1 className="text-3xl font-semibold mb-6">Leads Dashboard</h1>
 
-        <div className="flex items-center gap-3">
-          <form action="/admin/leads" method="GET" className="flex gap-2 items-center">
-            <input
-              name="search"
-              defaultValue={q}
-              placeholder="Search name, email, phone"
-              className="px-3 py-2 border rounded-md text-sm"
-            />
-            <select name="status" defaultValue={status} className="px-3 py-2 border rounded-md text-sm">
-              <option value="">All status</option>
-              <option value="new">New</option>
-              <option value="contacted">Contacted</option>
-              <option value="converted">Converted</option>
-              <option value="not_interested">Not Interested</option>
-            </select>
+      {/* Filters */}
+      <form onSubmit={applyFilters} className="flex gap-3 mb-6 bg-white p-4 rounded-xl shadow">
+        <input
+          placeholder="Search name, email, phone"
+          className="px-3 py-2 border rounded-md"
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+        />
 
-            <input name="destination" defaultValue={destination} placeholder="Destination" className="px-3 py-2 border rounded-md text-sm" />
-            <input name="budget" defaultValue={budget} placeholder="Budget" className="px-3 py-2 border rounded-md text-sm" />
+        <select
+          className="px-3 py-2 border rounded-md"
+          value={filters.status}
+          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+        >
+          <option value="">All status</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="converted">Converted</option>
+          <option value="not_interested">Not Interested</option>
+        </select>
 
-            <button type="submit" className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm">Filter</button>
-          </form>
+        <input
+          placeholder="Destination"
+          className="px-3 py-2 border rounded-md"
+          value={filters.destination}
+          onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
+        />
 
-          <a
-            href={`/api/admin/leads/export${qs({})}`}
-            className="px-4 py-2 bg-white border rounded-md text-sm shadow hover:bg-gray-50"
-            title="Export filtered leads as CSV"
-          >
-            Export CSV
-          </a>
-        </div>
-      </div>
+        <input
+          placeholder="Budget"
+          className="px-3 py-2 border rounded-md"
+          value={filters.budget}
+          onChange={(e) => setFilters({ ...filters, budget: e.target.value })}
+        />
 
-      <div className="overflow-x-auto bg-white shadow-md rounded-xl p-4 border">
-        <table className="w-full table-auto text-sm">
+        <button className="px-4 py-2 bg-orange-600 text-white rounded-md">Filter</button>
+      </form>
+
+      {/* Leads Table */}
+      <div className="overflow-x-auto bg-white shadow rounded-xl p-4 border">
+        <table className="w-full text-sm border">
           <thead>
-            <tr className="bg-gray-50 text-left">
+            <tr className="bg-gray-50">
               <th className="p-2 border">Name</th>
               <th className="p-2 border">Email</th>
               <th className="p-2 border">Phone</th>
@@ -118,19 +126,26 @@ export default async function LeadsPage({ searchParams }) {
               <th className="p-2 border">Destination</th>
               <th className="p-2 border">Budget</th>
               <th className="p-2 border">Days</th>
-              <th className="p-2 border">Travellers</th>
+              <th className="p-2 border">Travelers</th>
               <th className="p-2 border">Status</th>
-              <th className="p-2 border">Created</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {leads.length === 0 ? (
+            {loading && (
               <tr>
-                <td colSpan="11" className="p-6 text-center text-gray-500">No leads found</td>
+                <td colSpan="10" className="text-center p-4">Loading...</td>
               </tr>
-            ) : (
+            )}
+
+            {!loading && leads.length === 0 && (
+              <tr>
+                <td colSpan="10" className="text-center p-4 text-gray-500">No leads found</td>
+              </tr>
+            )}
+
+            {!loading &&
               leads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-gray-50">
                   <td className="p-2 border">{lead.name}</td>
@@ -141,57 +156,38 @@ export default async function LeadsPage({ searchParams }) {
                   <td className="p-2 border">{lead.budget}</td>
                   <td className="p-2 border">{lead.days}</td>
                   <td className="p-2 border">{lead.travelers}</td>
+
                   <td className="p-2 border">
-                    <StatusBadge status={lead.status || "new"} />
+                    <select
+                      className="border p-1 rounded"
+                      value={lead.status || "new"}
+                      onChange={(e) => updateStatus(lead.id, e.target.value)}
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="converted">Converted</option>
+                      <option value="not_interested">Not Interested</option>
+                    </select>
                   </td>
-                  <td className="p-2 border">{new Date(lead.created_at).toLocaleString()}</td>
 
                   <td className="p-2 border">
-                    <div className="flex items-center gap-2">
-                     <form action={`/api/admin/leads/delete?id=${lead.id}`} method="POST">
-  <button
-    type="submit"
-    className="text-red-600 text-xs"
-    onClick={() => confirm("Delete this lead permanently?")}
-  >
-    Delete
-  </button>
-</form>
+                    <div className="flex gap-2 text-xs">
+                      <Link href={`/admin/leads/edit/${lead.id}`} className="text-blue-600">
+                        Edit
+                      </Link>
 
-
-                      <Link href={`/admin/leads/edit/${lead.id}`} className="text-yellow-600 text-xs">Edit</Link>
-
-                      <form
-                        action={`/api/admin/leads/delete?id=${lead.id}`}
-                        method="POST"
-                        onSubmit={(e) => {
-                          if (!confirm("Delete this lead permanently?")) e.preventDefault();
-                        }}
+                      <button
+                        onClick={() => deleteLead(lead.id)}
+                        className="text-red-600"
                       >
-                        <button type="submit" className="text-red-600 text-xs">Delete</button>
-                      </form>
-
-                      <Link href={`/admin/leads/notes?lead_id=${lead.id}`} className="text-gray-700 text-xs">Notes</Link>
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="mt-6 flex justify-center items-center gap-2">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <Link
-            key={p}
-            href={`/admin/leads${qs({ page: p })}`}
-            className={`px-3 py-1 rounded-md border ${p === page ? "bg-orange-600 text-white" : "bg-white"}`}
-          >
-            {p}
-          </Link>
-        ))}
       </div>
     </div>
   );

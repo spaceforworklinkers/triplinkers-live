@@ -1,32 +1,62 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { verifyAdminSession } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const session = verifyAdminSession();
-  if (!session.authenticated) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const body = await req.json();
+
+    const {
+      id,
+      name,
+      email,
+      phone,
+      from_city,
+      destination,
+      days,
+      travelers,
+      budget,
+      status,
+      message,
+    } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Lead ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("leads")
+      .update({
+        name,
+        email,
+        phone,
+        from_city,
+        destination,
+        days,
+        travelers,
+        budget,
+        status,
+        message,
+      })
+      .eq("id", id)
+      .select();
+
+    if (error) {
+      console.error("LEAD UPDATE ERROR:", error);
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ success: true, lead: data[0] });
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
-
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
-  const form = await req.formData();
-  const updates = {};
-
-  form.forEach((value, key) => {
-    updates[key] = value;
-  });
-
-  const { error } = await supabaseAdmin
-    .from("leads")
-    .update(updates)
-    .eq("id", id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.redirect("/admin/leads");
 }
-  

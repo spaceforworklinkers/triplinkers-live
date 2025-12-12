@@ -12,7 +12,9 @@ const InquiryForm = () => {
     email: "",
     month: "",
     travelers: "",
-    budget: ""
+    budget: "",
+    from: "",
+    to: ""
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -20,7 +22,7 @@ const InquiryForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Save to localStorage
+    // Save to localStorage (still kept as your original logic)
     const existingData = JSON.parse(localStorage.getItem("tripInquiries") || "[]");
     const newInquiry = {
       ...formData,
@@ -33,7 +35,7 @@ const InquiryForm = () => {
 
     toast({
       title: "Inquiry Submitted Successfully! 🎉",
-      description: "Your Dubai trip expert will contact you in 15–30 minutes"
+      description: "Our travel expert will contact you shortly"
     });
 
     setTimeout(() => {
@@ -44,7 +46,9 @@ const InquiryForm = () => {
         email: "",
         month: "",
         travelers: "",
-        budget: ""
+        budget: "",
+        from: "",
+        to: ""
       });
     }, 5000);
   };
@@ -56,6 +60,9 @@ const InquiryForm = () => {
     });
   };
 
+  /* ------------------------------------------
+     SUCCESS MESSAGE UI
+  ------------------------------------------- */
   if (submitted) {
     return (
       <section id="inquiry-form" className="py-20 bg-slate-50">
@@ -77,11 +84,11 @@ const InquiryForm = () => {
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Thank You!</h3>
 
             <p className="text-xl text-gray-700 font-semibold mb-2">
-              Your Dubai trip expert will contact you in 15–30 minutes
+              Our travel expert will contact you shortly
             </p>
 
             <p className="text-gray-600">
-              We're excited to help you plan your perfect Dubai adventure!
+              We are excited to help you plan your perfect trip!
             </p>
           </motion.div>
         </div>
@@ -89,6 +96,9 @@ const InquiryForm = () => {
     );
   }
 
+  /* ------------------------------------------
+     MAIN FORM UI
+  ------------------------------------------- */
   return (
     <section id="inquiry-form" className="py-20 bg-slate-50">
       <div className="container mx-auto px-4">
@@ -100,11 +110,11 @@ const InquiryForm = () => {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Ready to Start Your <span className="text-orange-500">Dubai Journey?</span>
+            Ready to Plan Your <span className="text-orange-500">Next Journey?</span>
           </h2>
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Fill out the form below and our Dubai travel experts will create a personalized quote for you
+            Fill out the details below and our travel experts will create a personalized quote for you.
           </p>
         </motion.div>
 
@@ -115,7 +125,12 @@ const InquiryForm = () => {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto"
         >
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-200">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-200"
+          >
+
+            {/* ROW 1 - NAME + PHONE */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Name *</label>
@@ -125,7 +140,7 @@ const InquiryForm = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
                   placeholder="Your full name"
                 />
               </div>
@@ -138,12 +153,13 @@ const InquiryForm = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
-                  placeholder="+1 (555) 000-0000"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                  placeholder="+91 98765 43210"
                 />
               </div>
             </div>
 
+            {/* ROW 2 - EMAIL */}
             <div className="mb-6">
               <label className="block text-gray-700 font-semibold mb-2">Email *</label>
               <input
@@ -152,11 +168,41 @@ const InquiryForm = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
                 placeholder="your.email@example.com"
               />
             </div>
 
+            {/* ROW 3 - SOURCE + DESTINATION */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">Where are you traveling from? *</label>
+                <input
+                  type="text"
+                  name="from"
+                  value={formData.from}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                  placeholder="Delhi, Mumbai, Bangalore..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">Where do you want to go? *</label>
+                <input
+                  type="text"
+                  name="to"
+                  value={formData.to}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                  placeholder="Dubai, Bali, Maldives..."
+                />
+              </div>
+            </div>
+
+            {/* ROW 4 - MONTH + TRAVELERS */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Travel Month *</label>
@@ -165,21 +211,15 @@ const InquiryForm = () => {
                   value={formData.month}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
                 >
                   <option value="">Select month</option>
-                  <option value="January">January</option>
-                  <option value="February">February</option>
-                  <option value="March">March</option>
-                  <option value="April">April</option>
-                  <option value="May">May</option>
-                  <option value="June">June</option>
-                  <option value="July">July</option>
-                  <option value="August">August</option>
-                  <option value="September">September</option>
-                  <option value="October">October</option>
-                  <option value="November">November</option>
-                  <option value="December">December</option>
+                  {[
+                    "January","February","March","April","May","June",
+                    "July","August","September","October","November","December"
+                  ].map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
                 </select>
               </div>
 
@@ -192,35 +232,36 @@ const InquiryForm = () => {
                   onChange={handleChange}
                   required
                   min="1"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
                   placeholder="2"
                 />
               </div>
             </div>
 
+            {/* ROW 5 - BUDGET */}
             <div className="mb-8">
-              <label className="block text-gray-700 font-semibold mb-2">Budget Range *</label>
+              <label className="block text-gray-700 font-semibold mb-2">Budget Preference *</label>
               <select
                 name="budget"
                 value={formData.budget}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
               >
                 <option value="">Select your budget</option>
-                <option value="$1,000 - $2,500">$1,000 - $2,500</option>
-                <option value="$2,500 - $5,000">$2,500 - $5,000</option>
-                <option value="$5,000 - $10,000">$5,000 - $10,000</option>
-                <option value="$10,000+">$10,000+</option>
+                <option value="Economical">Economical</option>
+                <option value="Budget Friendly">Budget Friendly</option>
+                <option value="Luxury">Luxury</option>
               </select>
             </div>
 
+            {/* SUBMIT BUTTON */}
             <button
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
             >
               <Send className="w-5 h-5" />
-              Get quote for Dubai Trip
+              Submit Inquiry
             </button>
           </form>
         </motion.div>

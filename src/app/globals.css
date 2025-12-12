@@ -1,12 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
-
 /* Global body styling */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   @apply bg-white text-gray-900;
@@ -40,6 +39,15 @@ body {
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Typography */
+    --font-heading: 'Karla', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  /* Apply heading font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 }
 
@@ -48,4 +56,21 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+html {
+  font-size: 85%;
+}
+
+/* ===========================================================
+   CUSTOM FONT CLASSES (NO TAILWIND CONFIG NEEDED)
+   You can now use class="font-karla" and class="font-inter"
+=========================================================== */
+
+.font-karla {
+  font-family: 'Karla', sans-serif !important;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif !important;
 }

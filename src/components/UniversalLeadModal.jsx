@@ -4,21 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 
-/**
- * UniversalLeadModal.jsx
- *
- * Design: Airbnb-style minimal centered card
- * Functionality preserved:
- * - Auto-open after 9s (once per session)
- * - Submit to Web3Forms (client-side) using access_key "XXX"
- * - Success animation + auto-close
- * - Close on ESC and backdrop click
- * - Responsive small card (centered desktop, comfortable size on mobile)
- * - Keeps onClose and onSuccess callbacks
- *
- * Replace WEB3FORMS_ACCESS_KEY with your real key.
- */
-
 export default function UniversalLeadModal({
   open = false,
   onClose = () => {},
@@ -26,16 +11,13 @@ export default function UniversalLeadModal({
 }) {
   const modalRef = useRef(null);
 
-  // Visible state (synced with parent open prop)
   const [visible, setVisible] = useState(Boolean(open));
   useEffect(() => setVisible(Boolean(open)), [open]);
 
-  // UI states
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // detect mobile for small motion tweaks
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -45,7 +27,6 @@ export default function UniversalLeadModal({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Auto-open once per session after 9 seconds (if not already opened)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const KEY = "triplinkers_lead_modal_shown_v1";
@@ -65,7 +46,6 @@ export default function UniversalLeadModal({
     return () => clearTimeout(timer);
   }, [visible]);
 
-  // close helper
   const closeAll = () => {
     setVisible(false);
     setLoading(false);
@@ -73,83 +53,90 @@ export default function UniversalLeadModal({
     onClose && onClose();
   };
 
-  // ESC to close
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") closeAll();
     };
-    if (typeof window !== "undefined") {
-      window.addEventListener("keydown", onKey);
-      return () => window.removeEventListener("keydown", onKey);
-    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // backdrop click - close when clicking outside modal
   const handleBackdropMouseDown = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       closeAll();
     }
   };
 
-  // Web3Forms config - replace "XXX" with real key
-  const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
-  const WEB3FORMS_ACCESS_KEY = "XXX";
+  // 🔥 FINAL SUBMIT HANDLER (EMAIL + ADMIN)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
 
-  // submit handler
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setErrorMsg("");
-  setLoading(true);
+    try {
+      const form = e.target;
+      const formData = new FormData(form);
 
-  try {
-    const formElement = e.target;
-    const formData = new FormData(formElement);
+      const payload = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+        phone: formData.get("phone"),
+        from: formData.get("from"),
+        destination: formData.get("destination"),
+        days: formData.get("days"),
+        travelers: formData.get("travelers"),
+        budget: formData.get("budget"),
+        message: formData.get("message"),
+      };
 
-    // Convert formData to JSON
-    const body = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      from: formData.get("from"),
-      destination: formData.get("destination"),
-      days: formData.get("days"),
-      travelers: formData.get("travelers"),
-      budget: formData.get("budget"),
-      message: formData.get("message"),
-    };
+      // 1️⃣ WEB3FORMS → EMAIL
+      const web3Res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_KEY,
+          subject: "New Trip Inquiry - TripLinkers",
+          from_name: "TripLinkers Website",
+          ...payload,
+        }),
+      });
 
-    // Send to NEXT.js API → Supabase
-    const res = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+      const web3Json = await web3Res.json();
+      if (!web3Json.success) {
+        throw new Error("Email sending failed");
+      }
 
-    const json = await res.json();
+      // 2️⃣ BACKEND → ADMIN DASHBOARD
+      const apiRes = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...payload,
+          source: "Universal Modal",
+        }),
+      });
 
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || "Failed to submit");
-    }
+      const apiJson = await apiRes.json();
+      if (!apiJson.success) {
+        throw new Error("Lead save failed");
+      }
 
-    // success state
-    setShowSuccess(true);
-    onSuccess && onSuccess();
+      setShowSuccess(true);
+      onSuccess && onSuccess();
 
-    setTimeout(() => {
-      setShowSuccess(false);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setLoading(false);
+        closeAll();
+        form.reset();
+      }, 2000);
+    } catch (err) {
+      console.error("Lead submit error:", err);
+      setErrorMsg(err.message || "Submission failed");
       setLoading(false);
-      closeAll();
-      formElement.reset();
-    }, 2000);
-  } catch (err) {
-    console.error("Lead submit error:", err);
-    setErrorMsg(err?.message || "Submission failed, please try again");
-    setLoading(false);
-  }
-};
+    }
+  };
 
-
-  // motion offsets
   const initialY = isMobile ? 40 : 8;
   const exitY = isMobile ? 40 : 8;
 
@@ -157,7 +144,6 @@ export default function UniversalLeadModal({
     <AnimatePresence>
       {visible && (
         <motion.div
-          key="backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -165,7 +151,6 @@ export default function UniversalLeadModal({
           className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
         >
           <motion.div
-            key="modal"
             ref={modalRef}
             initial={{ y: initialY, opacity: 0, scale: 0.995 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -174,7 +159,6 @@ export default function UniversalLeadModal({
             className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 md:p-7 relative border border-gray-100"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            {/* Close */}
             <button
               onClick={closeAll}
               aria-label="Close"
@@ -184,7 +168,6 @@ export default function UniversalLeadModal({
               ✕
             </button>
 
-            {/* Success state */}
             <AnimatePresence>
               {showSuccess && (
                 <motion.div
@@ -197,17 +180,24 @@ export default function UniversalLeadModal({
                   <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4">
                     <CheckCircle className="w-10 h-10 text-teal-600" />
                   </div>
-                  <h3 className="text-lg font-semibold font-karla text-gray-900">Request Received</h3>
-                  <p className="text-sm text-gray-600 mt-1">Our team will contact you shortly.</p>
+                  <h3 className="text-lg font-semibold font-karla text-gray-900">
+                    Request Received
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Our team will contact you shortly.
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Form */}
             {!showSuccess && (
               <>
-                <h3 className="text-2xl font-semibold font-karla text-gray-900 mb-1">Plan Your Perfect Trip</h3>
-                <p className="text-sm text-gray-600 mb-4">Share quick details, we'll prepare a tailored quote.</p>
+                <h3 className="text-2xl font-semibold font-karla text-gray-900 mb-1">
+                  Plan Your Perfect Trip
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Share quick details, we'll prepare a tailored quote.
+                </p>
 
                 {errorMsg && (
                   <div className="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded">
@@ -217,63 +207,21 @@ export default function UniversalLeadModal({
 
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input
-                      name="name"
-                      required
-                      placeholder="Name"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
-                    <input
-                      name="email"
-                      type="email"
-                      required
-                      placeholder="Email"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
+                    <input name="name" required placeholder="Name" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    <input name="email" type="email" required placeholder="Email" className="w-full px-3 py-2 border rounded-lg text-sm" />
                   </div>
 
-                  <input
-                    name="phone"
-                    required
-                    placeholder="Phone"
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                  />
+                  <input name="phone" required placeholder="Phone" className="w-full px-3 py-2 border rounded-lg text-sm" />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input
-                      name="from"
-                      required
-                      placeholder="Travelling From (city/country)"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
-                    <input
-                      name="destination"
-                      required
-                      placeholder="Destination (city/country)"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
+                    <input name="from" required placeholder="Travelling From (city/country)" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    <input name="destination" required placeholder="Destination (city/country)" className="w-full px-3 py-2 border rounded-lg text-sm" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <input
-                      name="days"
-                      type="number"
-                      min="1"
-                      placeholder="Days"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
-                    <input
-                      name="travelers"
-                      type="number"
-                      min="1"
-                      placeholder="Travelers"
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    />
-                    <select
-                      name="budget"
-                      defaultValue=""
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-orange-100 outline-none"
-                    >
+                    <input name="days" type="number" min="1" placeholder="Days" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    <input name="travelers" type="number" min="1" placeholder="Travelers" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                    <select name="budget" defaultValue="" className="w-full px-3 py-2 border rounded-lg text-sm">
                       <option value="" disabled>Budget</option>
                       <option>Economical</option>
                       <option>Mid-Range</option>
@@ -281,16 +229,12 @@ export default function UniversalLeadModal({
                     </select>
                   </div>
 
-                  <textarea
-                    name="message"
-                    placeholder="Any additional details (optional)"
-                    className="w-full px-3 py-2 border rounded-lg text-sm h-20 focus:ring-2 focus:ring-orange-100 outline-none"
-                  />
+                  <textarea name="message" placeholder="Any additional details (optional)" className="w-full px-3 py-2 border rounded-lg text-sm h-20" />
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-2.5 rounded-lg text-sm font-semibold text-white shadow ${
+                    className={`w-full py-2.5 rounded-lg text-sm font-semibold text-white ${
                       loading ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
                     }`}
                   >

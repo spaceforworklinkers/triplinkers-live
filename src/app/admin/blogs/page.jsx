@@ -3,17 +3,20 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { verifyAdminSession } from "@/lib/adminAuth";
 
 export default async function BlogsPage() {
-  const session = verifyAdminSession();
+  const session = await verifyAdminSession(); // ✅ await added
 
   if (!session.authenticated) {
-    return null; // middleware handle redirect
+    return null; // middleware will redirect
   }
 
-  // Fetch blogs + categories data
-  const { data: blogs } = await supabaseAdmin
+  const { data: blogs, error } = await supabaseAdmin
     .from("blogs")
     .select("id, title, slug, created_at, categories(title)")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch blogs:", error);
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">

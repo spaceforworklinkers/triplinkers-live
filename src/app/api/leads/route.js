@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
-// GET — Fetch all leads
+// GET — Fetch all leads (Admin)
 export async function GET(req) {
   try {
     const url = new URL(req.url);
@@ -15,7 +15,6 @@ export async function GET(req) {
       .select("*")
       .order("created_at", { ascending: false });
 
-    // Search filter
     if (search) {
       const like = `%${search}%`;
       query = query.or(
@@ -23,13 +22,8 @@ export async function GET(req) {
       );
     }
 
-    // Status filter
     if (status) query = query.eq("status", status);
-
-    // Destination filter
     if (destination) query = query.ilike("destination", `%${destination}%`);
-
-    // Budget filter
     if (budget) query = query.ilike("budget", `%${budget}%`);
 
     const { data, error } = await query;
@@ -40,17 +34,27 @@ export async function GET(req) {
 
     return NextResponse.json({ success: true, leads: data });
   } catch (err) {
-    console.error("GET LEADS ERROR:", err);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }
 
-// POST — Create new lead
+// POST — Save lead only (ALL FORMS)
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const { name, email, phone, from, destination, days, travelers, budget, message } = body;
+    const {
+      name,
+      email,
+      phone,
+      from,
+      destination,
+      days,
+      travelers,
+      budget,
+      message,
+      source = "Website",
+    } = body;
 
     const { data, error } = await supabaseAdmin
       .from("leads")
@@ -65,18 +69,19 @@ export async function POST(req) {
           travelers,
           budget,
           message,
+          source,
+          status: "new",
         },
       ])
-      .select();
+      .select()
+      .single();
 
     if (error) {
-      console.error("LEAD INSERT ERROR:", error);
       return NextResponse.json({ success: false, message: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, lead: data[0] });
+    return NextResponse.json({ success: true, lead: data });
   } catch (err) {
-    console.error("SERVER ERROR:", err);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }

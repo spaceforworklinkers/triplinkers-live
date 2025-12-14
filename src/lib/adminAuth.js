@@ -2,9 +2,9 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
 // Validate admin session from cookie
-export function verifyAdminSession() {
+export async function verifyAdminSession() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = cookies(); // ❌ await hata diya
     const token = cookieStore.get("admin_session")?.value;
 
     if (!token) {

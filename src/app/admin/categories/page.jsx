@@ -8,9 +8,20 @@ export default function CategoriesPage() {
   const [slug, setSlug] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Auto-generate slug
+  useEffect(() => {
+    setSlug(
+      title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9 ]/g, "")
+        .replace(/\s+/g, "-")
+    );
+  }, [title]);
+
   // Fetch categories
   async function loadCategories() {
-    const res = await fetch("/api/admin/categories");
+    const res = await fetch("/api/categories");
     const data = await res.json();
     setCategories(data.categories || []);
   }
@@ -24,7 +35,7 @@ export default function CategoriesPage() {
     e.preventDefault();
     setLoading(true);
 
-    const res = await fetch("/api/admin/categories", {
+    const res = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, slug }),
@@ -33,7 +44,7 @@ export default function CategoriesPage() {
     setLoading(false);
 
     if (!res.ok) {
-      alert("Slug already exists or error occurred");
+      alert("Unable to create category");
       return;
     }
 
@@ -46,7 +57,7 @@ export default function CategoriesPage() {
   async function deleteCategory(id) {
     if (!confirm("Delete this category?")) return;
 
-    await fetch(`/api/admin/categories?id=${id}`, {
+    await fetch(`/api/categories?id=${id}`, {
       method: "DELETE",
     });
 
@@ -74,11 +85,10 @@ export default function CategoriesPage() {
 
         <input
           type="text"
-          placeholder="Slug (unique)"
-          className="w-full border rounded-lg px-4 py-3 mb-4"
+          placeholder="Slug (auto-generated)"
+          className="w-full border rounded-lg px-4 py-3 mb-4 bg-gray-100"
           value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          required
+          readOnly
         />
 
         <button
@@ -112,7 +122,8 @@ export default function CategoriesPage() {
 
             {categories.map((cat) => (
               <tr key={cat.id} className="hover:bg-gray-50">
-                <td className="border p-3">{cat.title}</td>
+                {/* ✅ FIX HERE */}
+                <td className="border p-3">{cat.name}</td>
                 <td className="border p-3">{cat.slug}</td>
                 <td className="border p-3">
                   <button

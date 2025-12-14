@@ -1,21 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, use } from "react";
 
 export default function DeleteBlogPage({ params }) {
+  const { id: blogId } = use(params); // ✅ Next.js 15 safe
   const router = useRouter();
-  const blogId = params.id;
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
     setLoading(true);
 
-    await fetch(`/api/admin/blogs/${blogId}`, {
+    const res = await fetch(`/api/blogs/${blogId}`, {
       method: "DELETE",
     });
 
     setLoading(false);
+
+    if (!res.ok) {
+      alert("Failed to delete blog");
+      return;
+    }
 
     alert("Blog deleted successfully");
     router.push("/admin/blogs");
@@ -35,6 +40,7 @@ export default function DeleteBlogPage({ params }) {
           <button
             onClick={() => router.push("/admin/blogs")}
             className="px-6 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 font-semibold"
+            disabled={loading}
           >
             Cancel
           </button>
@@ -42,6 +48,7 @@ export default function DeleteBlogPage({ params }) {
           <button
             onClick={handleDelete}
             className="px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+            disabled={loading}
           >
             {loading ? "Deleting..." : "Delete"}
           </button>

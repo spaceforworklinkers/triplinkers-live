@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 // Validate admin session from cookie
 export async function verifyAdminSession() {
   try {
-    const cookieStore = cookies(); // ❌ await hata diya
+    const cookieStore = await cookies(); // ✅ FIX
     const token = cookieStore.get("admin_session")?.value;
 
     if (!token) {

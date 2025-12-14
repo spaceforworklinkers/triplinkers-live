@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("categories")
-    .select("*")
+    .select("id, name, slug, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -20,9 +20,21 @@ export async function POST(req) {
   try {
     const { title, slug } = await req.json();
 
+    if (!title || !slug) {
+      return NextResponse.json(
+        { error: "Title and slug are required" },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabaseAdmin
       .from("categories")
-      .insert([{ title, slug }])
+      .insert([
+        {
+          name: title, // ✅ CRITICAL FIX
+          slug,
+        },
+      ])
       .select();
 
     if (error) {

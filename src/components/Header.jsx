@@ -76,6 +76,12 @@ const Header = () => {
               >
                 About Us
               </Link>
+                  <Link
+                href="/blogs"
+                className="text-gray-600 font-karla hover:text-teal-600 font-medium transition-colors"
+              >
+                Blogs
+              </Link>
               <Link
                 href="/contact"
                 className="text-gray-600 font-karla hover:text-teal-600 font-medium transition-colors"

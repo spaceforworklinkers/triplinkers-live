@@ -1,30 +1,42 @@
 import { supabase } from "@/lib/supabaseClient";
 
-export async function GET() {
-  const baseUrl = "https://triplinkers.com"; // change this to your actual domain
+export default async function sitemap() {
+  const baseUrl = "https://triplinkers.com";
 
-  const { data: blogs } = await supabase
+  // Fetch ONLY published blogs
+  const { data: blogs, error } = await supabase
     .from("blogs")
-    .select("slug");
+    .select("slug, updated_at")
+    .eq("status", "published");
 
-  const blogUrls = blogs.map((b) => `
-    <url>
-      <loc>${baseUrl}/blogs/${b.slug}</loc>
-      <changefreq>weekly</changefreq>
-    </url>
-  `).join("");
+  if (error || !blogs) {
+    return [
+      {
+        url: `${baseUrl}/blogs`,
+        changeFrequency: "daily",
+        priority: 0.8,
+      },
+    ];
+  }
 
-  const xml = `
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      <url>
-        <loc>${baseUrl}/blogs</loc>
-        <changefreq>daily</changefreq>
-      </url>
-      ${blogUrls}
-    </urlset>
-  `;
+  const blogUrls = blogs.map((blog) => ({
+    url: `${baseUrl}/blogs/${blog.slug}`,
+    lastModified: blog.updated_at || new Date(),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
 
-  return new Response(xml, {
-    headers: { "Content-Type": "application/xml" }
-  });
+  return [
+    {
+      url: baseUrl,
+      changeFrequency: "daily",
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/blogs`,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    ...blogUrls,
+  ];
 }

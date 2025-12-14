@@ -1,86 +1,170 @@
 import Link from "next/link";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { verifyAdminSession } from "@/lib/adminAuth";
 
 export default async function BlogsPage() {
-  const session = await verifyAdminSession(); // ✅ await added
-
-  if (!session.authenticated) {
-    return null; // middleware will redirect
-  }
+  const session = await verifyAdminSession();
+  if (!session.authenticated) return null;
 
   const { data: blogs, error } = await supabaseAdmin
     .from("blogs")
-    .select("id, title, slug, created_at, categories(title)")
+    .select(`
+      id,
+      title,
+      slug,
+      status,
+      created_at,
+      blog_categories (
+        categories (
+          name
+        )
+      )
+    `)
     .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Failed to fetch blogs:", error);
   }
 
+  const totalBlogs = blogs?.length || 0;
+  const activeBlogs =
+    blogs?.filter((b) => b.status === "published").length || 0;
+  const inactiveBlogs = totalBlogs - activeBlogs;
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold">Blogs</h1>
+    <div className="min-h-screen bg-gray-50 p-6 sm:p-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Blogs Dashboard
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Manage published and draft blog content
+          </p>
+        </div>
 
         <Link
           href="/admin/blogs/create"
-          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm"
         >
-          + Create New Blog
+          + Create Blog
         </Link>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-md border overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-3 border text-left">Title</th>
-              <th className="p-3 border text-left">Slug</th>
-              <th className="p-3 border text-left">Category</th>
-              <th className="p-3 border text-left">Created At</th>
-              <th className="p-3 border text-left">Actions</th>
-            </tr>
-          </thead>
+      {/* Dashboard Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <p className="text-sm text-gray-500">Total Blogs</p>
+          <h3 className="text-3xl font-bold text-gray-900 mt-1">
+            {totalBlogs}
+          </h3>
+        </div>
 
-          <tbody>
-            {blogs?.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center p-6 text-gray-500">
-                  No blogs found
-                </td>
-              </tr>
-            )}
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <p className="text-sm text-gray-500">Active</p>
+          <h3 className="text-3xl font-bold text-green-600 mt-1">
+            {activeBlogs}
+          </h3>
+        </div>
 
-            {blogs?.map((blog) => (
-              <tr key={blog.id} className="hover:bg-gray-50">
-                <td className="p-3 border">{blog.title}</td>
-                <td className="p-3 border">{blog.slug}</td>
-                <td className="p-3 border">
-                  {blog.categories?.title || "Uncategorized"}
-                </td>
-                <td className="p-3 border">
-                  {new Date(blog.created_at).toLocaleString()}
-                </td>
-                <td className="p-3 border">
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <p className="text-sm text-gray-500">Inactive</p>
+          <h3 className="text-3xl font-bold text-gray-600 mt-1">
+            {inactiveBlogs}
+          </h3>
+        </div>
+      </div>
+
+      {/* Blogs List */}
+      <div className="space-y-4">
+        {blogs?.length === 0 && (
+          <div className="bg-white rounded-xl p-8 text-center text-gray-500 shadow-sm border">
+            No blogs found
+          </div>
+        )}
+
+        {blogs?.map((blog) => {
+          const category =
+            blog.blog_categories?.[0]?.categories?.name;
+          const isPublished = blog.status === "published";
+
+          return (
+            <div
+              key={blog.id}
+              className="bg-white rounded-xl p-5 shadow-sm border hover:shadow-md transition"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                {/* Left Content */}
+                <div className="space-y-2">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {blog.title}
+                  </h2>
+
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    {category && (
+                      <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
+                        {category}
+                      </span>
+                    )}
+
+                    <span
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium ${
+                        isPublished
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          isPublished
+                            ? "bg-green-600"
+                            : "bg-gray-500"
+                        }`}
+                      ></span>
+                      {isPublished ? "Active" : "Inactive"}
+                    </span>
+
+                    <span className="text-gray-500">
+                      {new Date(
+                        blog.created_at
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href={`/blogs/${blog.slug}`}
+                    target="_blank"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100"
+                  >
+                    <Eye size={16} />
+                    View
+                  </Link>
+
                   <Link
                     href={`/admin/blogs/edit/${blog.id}`}
-                    className="text-blue-600 hover:underline mr-4"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border text-blue-600 hover:bg-blue-50"
                   >
+                    <Pencil size={16} />
                     Edit
                   </Link>
 
                   <Link
                     href={`/admin/blogs/delete/${blog.id}`}
-                    className="text-red-600 hover:underline"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border text-red-600 hover:bg-red-50"
                   >
+                    <Trash2 size={16} />
                     Delete
                   </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

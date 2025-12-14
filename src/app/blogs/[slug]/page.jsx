@@ -1,81 +1,151 @@
+import Link from "next/link";
+import Script from "next/script";
+import { supabase } from "@/lib/supabaseClient";
+
+export const revalidate = 60;
+
+/* ---------------- SEO METADATA ---------------- */
 export async function generateMetadata({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const { data: blog } = await supabase
     .from("blogs")
-    .select("title, description, banner_url")
+    .select(`
+      title,
+      excerpt,
+      featured_image,
+      seo_title,
+      seo_description,
+      seo_keywords
+    `)
     .eq("slug", slug)
+    .eq("status", "published")
     .single();
 
   if (!blog) return {};
 
+  const metaTitle = blog.seo_title || `${blog.title} | TripLinkers`;
+  const metaDescription = blog.seo_description || blog.excerpt;
+  const canonicalUrl = `https://triplinkers.com/blogs/${slug}`;
+
   return {
-    title: blog.title,
-    description: blog.description,
+    title: metaTitle,
+    description: metaDescription,
+    keywords: blog.seo_keywords || undefined,
+
+    alternates: {
+      canonical: canonicalUrl,
+    },
+
     openGraph: {
-      title: blog.title,
-      description: blog.description,
-      images: [blog.banner_url],
+      title: metaTitle,
+      description: metaDescription,
+      url: canonicalUrl,
+      images: blog.featured_image ? [blog.featured_image] : [],
       type: "article",
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: metaTitle,
+      description: metaDescription,
+      images: blog.featured_image ? [blog.featured_image] : [],
     },
   };
 }
 
-import { supabase } from "@/lib/supabaseClient";
-export const revalidate = 60;
-
+/* ---------------- BLOG PAGE ---------------- */
 export default async function BlogDetailPage({ params }) {
-  const { slug } = params;
+  const { slug } = await params;
 
-  // Fetch the blog by slug
   const { data: blog } = await supabase
     .from("blogs")
-    .select("*, categories(title, slug)")
-
+    .select(`
+      *,
+      blog_categories (
+        categories (
+          name,
+          slug
+        )
+      )
+    `)
     .eq("slug", slug)
+    .eq("status", "published")
     .single();
 
   if (!blog) {
     return (
-      <div className="p-8 text-center">
+      <div className="p-10 text-center">
         <h2 className="text-2xl font-bold">Blog not found</h2>
       </div>
     );
   }
 
+  const firstCategory = blog.blog_categories?.[0]?.categories;
+
+  const blogSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: blog.seo_title || blog.title,
+    description: blog.seo_description || blog.excerpt,
+    image: blog.featured_image ? [blog.featured_image] : undefined,
+    datePublished: blog.published_at || blog.created_at,
+    dateModified: blog.updated_at || blog.created_at,
+    author: {
+      "@type": "Organization",
+      name: "TripLinkers Editorial Team",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "TripLinkers",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://triplinkers.com/logo.png",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://triplinkers.com/blogs/${blog.slug}`,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      <Script
+        id="blog-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+      />
+
       <div className="max-w-4xl mx-auto p-6">
-        {/* Banner */}
-        {blog.banner_url && (
+        {blog.featured_image && (
           <img
-            src={blog.banner_url}
-            alt={blog.title}
-            className="w-full h-72 object-cover rounded-xl mb-6 shadow"
+            src={blog.featured_image}
+            alt={blog.seo_title || blog.title}
+            className="w-full h-72 object-cover rounded-xl mb-6"
           />
         )}
 
-        {/* Category */}
-        <Link
-          href={`/blogs/category/${blog.categories?.slug}`}
-          className="text-orange-600 font-semibold mb-2 hover:underline"
-        >
-          {blog.categories?.title}
-        </Link>
+        {firstCategory && (
+          <Link
+            href={`/blogs/category/${firstCategory.slug}`}
+            className="text-orange-600 font-semibold block mb-2"
+          >
+            {firstCategory.name}
+          </Link>
+        )}
 
-        {/* Title */}
-        <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
+        <h1 className="text-4xl font-bold mb-3">{blog.title}</h1>
 
-        {/* Date */}
-        <p className="text-gray-500 text-sm mb-8">
-          Published on {new Date(blog.created_at).toLocaleDateString()}
+        <p className="text-sm text-gray-500 mb-8">
+          TripLinkers Editorial Team •{" "}
+          {new Date(blog.published_at || blog.created_at).toLocaleDateString()}
         </p>
 
-        {/* Content */}
         <div
-          className="prose max-w-none text-gray-800"
+          className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: blog.content }}
-        ></div>
+        />
       </div>
     </div>
   );

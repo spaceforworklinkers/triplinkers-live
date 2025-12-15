@@ -19,10 +19,11 @@ const InquiryForm = () => {
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Save to localStorage (still kept as your original logic)
+  try {
+    // 🔹 keep your original localStorage logic
     const existingData = JSON.parse(localStorage.getItem("tripInquiries") || "[]");
     const newInquiry = {
       ...formData,
@@ -31,6 +32,50 @@ const InquiryForm = () => {
     existingData.push(newInquiry);
     localStorage.setItem("tripInquiries", JSON.stringify(existingData));
 
+    // 🔹 payload for email + backend
+    const payload = {
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      month: formData.month,
+      travelers: formData.travelers,
+      budget: formData.budget,
+      from: formData.from,
+      destination: formData.to
+    };
+
+    // 1️⃣ EMAIL (Web3Forms)
+    const emailRes = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_key: process.env.NEXT_PUBLIC_WEB3FORMS_KEY,
+        subject: "New Travel Inquiry - TripLinkers",
+        from_name: "TripLinkers Website",
+        ...payload,
+      }),
+    });
+
+    const emailJson = await emailRes.json();
+    if (!emailJson.success) throw new Error("Email failed");
+
+    // 2️⃣ DASHBOARD SAVE
+    const apiRes = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        ...payload,
+        source: "Inquiry Form",
+      }),
+    });
+
+    const apiJson = await apiRes.json();
+    if (!apiRes.ok || !apiJson.success) {
+      throw new Error(apiJson.message || "Lead save failed");
+    }
+
+    // 🔹 UI success (unchanged)
     setSubmitted(true);
 
     toast({
@@ -51,7 +96,17 @@ const InquiryForm = () => {
         to: ""
       });
     }, 5000);
-  };
+
+  } catch (err) {
+    console.error("Inquiry submit error:", err);
+    toast({
+      title: "Submission failed",
+      description: "Please try again in a moment",
+      variant: "destructive",
+    });
+  }
+};
+
 
   const handleChange = (e) => {
     setFormData({

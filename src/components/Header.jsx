@@ -50,9 +50,9 @@ const Header = () => {
                 <Image
                   src="/images/logo/triplinkers-svg.svg"
                   alt="TripLinkers - Stop searching. Start Travelling"
-                  width={150}
+                  width={200}
                   height={60}
-                  className="h-12 md:h-16 w-auto"
+                  className="h-12 md:h-18 w-auto"
                 />
               </Link>
             </motion.div>

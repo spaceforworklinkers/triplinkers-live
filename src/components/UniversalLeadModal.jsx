@@ -2,7 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import {
+  CheckCircle,
+  X,
+  MapPin,
+  Calendar,
+  Users,
+  DollarSign,
+  Mail,
+  Phone,
+  User,
+  Send,
+  Sparkles,
+} from "lucide-react";
 
 export default function UniversalLeadModal({
   open = false,
@@ -27,25 +39,6 @@ export default function UniversalLeadModal({
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const KEY = "triplinkers_lead_modal_shown_v1";
-
-    if (visible) {
-      sessionStorage.setItem(KEY, "1");
-      return;
-    }
-
-    if (sessionStorage.getItem(KEY)) return;
-
-    const timer = setTimeout(() => {
-      setVisible(true);
-      sessionStorage.setItem(KEY, "1");
-    }, 9000);
-
-    return () => clearTimeout(timer);
-  }, [visible]);
-
   const closeAll = () => {
     setVisible(false);
     setLoading(false);
@@ -67,30 +60,32 @@ export default function UniversalLeadModal({
     }
   };
 
-  // 🔥 FINAL SUBMIT HANDLER (EMAIL + ADMIN)
+  /* =========================
+     SUBMIT HANDLER (FIXED)
+     ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
 
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const payload = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      from: formData.get("from"),
+      destination: formData.get("destination"),
+      days: formData.get("days"),
+      travelers: formData.get("travelers"),
+      budget: formData.get("budget"),
+      message: formData.get("message"),
+    };
+
     try {
-      const form = e.target;
-      const formData = new FormData(form);
-
-      const payload = {
-        name: formData.get("name"),
-        email: formData.get("email"),
-        phone: formData.get("phone"),
-        from: formData.get("from"),
-        destination: formData.get("destination"),
-        days: formData.get("days"),
-        travelers: formData.get("travelers"),
-        budget: formData.get("budget"),
-        message: formData.get("message"),
-      };
-
-      // 1️⃣ WEB3FORMS → EMAIL
-      const web3Res = await fetch("https://api.web3forms.com/submit", {
+      /* 1️⃣ EMAIL (Web3Forms) */
+      const emailRes = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -101,26 +96,28 @@ export default function UniversalLeadModal({
         }),
       });
 
-      const web3Json = await web3Res.json();
-      if (!web3Json.success) {
-        throw new Error("Email sending failed");
+      const emailJson = await emailRes.json();
+      if (!emailJson.success) {
+        throw new Error("Email delivery failed");
       }
 
-      // 2️⃣ BACKEND → ADMIN DASHBOARD
+      /* 2️⃣ BACKEND SAVE (Dashboard) */
       const apiRes = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           ...payload,
-          source: "Universal Modal",
+          source: "Universal Lead Modal",
         }),
       });
 
       const apiJson = await apiRes.json();
-      if (!apiJson.success) {
-        throw new Error("Lead save failed");
+      if (!apiRes.ok || !apiJson.success) {
+        throw new Error(apiJson.message || "Lead save failed");
       }
 
+      /* SUCCESS */
       setShowSuccess(true);
       onSuccess && onSuccess();
 
@@ -129,16 +126,15 @@ export default function UniversalLeadModal({
         setLoading(false);
         closeAll();
         form.reset();
-      }, 2000);
+      }, 1800);
     } catch (err) {
       console.error("Lead submit error:", err);
-      setErrorMsg(err.message || "Submission failed");
+      setErrorMsg(err.message || "Submission failed. Please try again.");
       setLoading(false);
     }
   };
 
-  const initialY = isMobile ? 40 : 8;
-  const exitY = isMobile ? 40 : 8;
+  const initialY = isMobile ? 30 : 8;
 
   return (
     <AnimatePresence>
@@ -148,108 +144,138 @@ export default function UniversalLeadModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onMouseDown={handleBackdropMouseDown}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm"
         >
           <motion.div
             ref={modalRef}
-            initial={{ y: initialY, opacity: 0, scale: 0.995 }}
+            initial={{ y: initialY, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: exitY, opacity: 0, scale: 0.995 }}
-            transition={{ type: "spring", stiffness: 260, damping: 26, duration: 0.28 }}
-            className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 md:p-7 relative border border-gray-100"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            exit={{ y: initialY, opacity: 0, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 260, damping: 26 }}
+            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden relative"
           >
-            <button
-              onClick={closeAll}
-              aria-label="Close"
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-              type="button"
-            >
-              ✕
-            </button>
+            {/* Header */}
+            <div className="relative bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-6">
+              <div className="absolute inset-0 bg-black/10"></div>
 
-            <AnimatePresence>
-              {showSuccess && (
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="flex flex-col items-center justify-center py-8"
-                >
-                  <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-4">
-                    <CheckCircle className="w-10 h-10 text-teal-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold font-karla text-gray-900">
-                    Request Received
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Our team will contact you shortly.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  closeAll();
+                }}
+                className="absolute top-3 right-3 w-9 h-9 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="relative text-center">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+
+                {showSuccess ? (
+                  <>
+                    <h3 className="text-xl font-bold text-white mb-1">
+                      Request Received
+                    </h3>
+                    <p className="text-orange-100 text-sm">
+                      Our team will contact you shortly.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-2xl font-bold text-white mb-1">
+                      Plan Your Perfect Trip
+                    </h3>
+                    <p className="text-orange-100 text-sm">
+                      Share details and get a personalized itinerary
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
 
             {!showSuccess && (
-              <>
-                <h3 className="text-2xl font-semibold font-karla text-gray-900 mb-1">
-                  Plan Your Perfect Trip
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Share quick details, we'll prepare a tailored quote.
-                </p>
-
+              <form onSubmit={handleSubmit} className="px-6 py-5">
                 {errorMsg && (
-                  <div className="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+                  <div className="mb-3 p-3 text-sm text-red-700 bg-red-50 rounded-xl border border-red-200">
                     {errorMsg}
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input name="name" required placeholder="Name" className="w-full px-3 py-2 border rounded-lg text-sm" />
-                    <input name="email" type="email" required placeholder="Email" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input icon={User} name="name" placeholder="Full Name" />
+                    <Input icon={Mail} name="email" placeholder="Email" />
                   </div>
 
-                  <input name="phone" required placeholder="Phone" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <Input icon={Phone} name="phone" placeholder="Phone Number" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input name="from" required placeholder="Travelling From (city/country)" className="w-full px-3 py-2 border rounded-lg text-sm" />
-                    <input name="destination" required placeholder="Destination (city/country)" className="w-full px-3 py-2 border rounded-lg text-sm" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input icon={MapPin} name="from" placeholder="From" />
+                    <Input icon={MapPin} name="destination" placeholder="Destination" />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <input name="days" type="number" min="1" placeholder="Days" className="w-full px-3 py-2 border rounded-lg text-sm" />
-                    <input name="travelers" type="number" min="1" placeholder="Travelers" className="w-full px-3 py-2 border rounded-lg text-sm" />
-                    <select name="budget" defaultValue="" className="w-full px-3 py-2 border rounded-lg text-sm">
-                      <option value="" disabled>Budget</option>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input icon={Calendar} name="days" placeholder="Days" />
+                    <Input icon={Users} name="travelers" placeholder="People" />
+                    <select
+                      name="budget"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm"
+                    >
+                      <option value="">Budget</option>
                       <option>Economical</option>
                       <option>Mid-Range</option>
                       <option>Luxury</option>
                     </select>
                   </div>
 
-                  <textarea name="message" placeholder="Any additional details (optional)" className="w-full px-3 py-2 border rounded-lg text-sm h-20" />
+                  <textarea
+                    name="message"
+                    placeholder="Additional details (optional)"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm h-20 resize-none"
+                  />
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-2.5 rounded-lg text-sm font-semibold text-white ${
-                      loading ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
-                    }`}
+                    className="w-full py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-orange-500 flex items-center justify-center gap-2"
                   >
-                    {loading ? "Sending..." : "Request Quote"}
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Get Personalized Quote
+                      </>
+                    )}
                   </button>
-                </form>
 
-                <p className="text-xs text-gray-500 mt-3">
-                  We respect your privacy. We'll only use this information to prepare your quote.
-                </p>
-              </>
+                  <p className="text-[11px] text-gray-500 text-center">
+                    🔒 Your information is safe and confidential
+                  </p>
+                </div>
+              </form>
             )}
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function Input({ icon: Icon, ...props }) {
+  return (
+    <div className="relative">
+      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <input
+        {...props}
+        required
+        className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500"
+      />
+    </div>
   );
 }

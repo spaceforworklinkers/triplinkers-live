@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import RootShell from "@/components/RootShell";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <RootShell>{children}</RootShell>
+        <Suspense fallback={null}>
+          <RootShell>{children}</RootShell>
+        </Suspense>
       </body>
     </html>
   );

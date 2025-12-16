@@ -1,14 +1,51 @@
 import { NextResponse } from "next/server";
+import { generateWithGroq } from "@/lib/groq";
+
+const rateLimitMap = new Map();
+
+function rateLimit(ip, limit = 3, windowMs = 5 * 60 * 1000) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+
+  if (now - entry.start > windowMs) {
+    rateLimitMap.set(ip, { count: 1, start: now });
+    return true;
+  }
+
+  if (entry.count >= limit) {
+    return false;
+  }
+
+  entry.count += 1;
+  rateLimitMap.set(ip, entry);
+  return true;
+}
 
 // Helper: Format coordinate precision
 function formatCoord(raw) {
   if (raw === null || raw === undefined) return null;
   const n = Number(raw);
   if (Number.isNaN(n)) return null;
-  return Number(n.toFixed(6)); 
+  return Number(n.toFixed(6));
 }
 
 export async function POST(req) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0] ||
+    req.headers.get("x-real-ip") ||
+    req.headers.get("user-agent") ||
+    "unknown";
+
+  if (!rateLimit(ip)) {
+    return NextResponse.json(
+      {
+        error:
+          "Too many itinerary requests. Please wait a few minutes before trying again.",
+      },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const { destination, budget, tripType, days } = body || {};
@@ -44,9 +81,7 @@ export async function POST(req) {
     const placeId = destination?.value?.place_id || "Unknown";
 
     const latRaw =
-      destination?.value?.lat ??
-      destination?.value?.latitude ??
-      null;
+      destination?.value?.lat ?? destination?.value?.latitude ?? null;
 
     const lonRaw =
       destination?.value?.lon ??
@@ -79,7 +114,8 @@ CRITICAL RULES:
 2. Do NOT assume Dubai unless the coordinates actually belong to Dubai.
 3. If coordinates are unknown, state that clearly and avoid guessing.
 4. Use real places, real distances, real neighbourhoods.
-5. Output must be plain text only. No markdown. No emojis.
+5. Output must be plain text only. No markdown. Avoid excessive emojis.
+
 
 TRIP INPUTS:
 - Days: ${finalDays}
@@ -89,7 +125,7 @@ TRIP INPUTS:
 REQUIRED OUTPUT FORMAT (PLAIN TEXT ONLY):
 
 1) Introduction  
-   Mention the correct location based on coordinates.
+   Mention the correct location based on coordinates but dont show coordinates.
 
 2) Best Time To Visit  
    Region-specific climate guidance.
@@ -113,56 +149,97 @@ REQUIRED OUTPUT FORMAT (PLAIN TEXT ONLY):
 7) Travel Tips  
    Real, region-specific cultural and practical guidance.
 
-8) 2-Line Conclusion  
+8) 2-Line Conclusion
+`;
+    const compactPrompt = `
+You are TripLinkers AI.
+
+Generate a concise, factual travel itinerary using real locations.
+
+Destination: ${displayName}
+Location coordinates provided internally for accuracy.
+Days: ${finalDays}
+Budget: ${budget || "Moderate"}
+Trip Type: ${tripType || "General"}
+
+Output plain text only.
+
+Include:
+- Short introduction
+- Day-wise itinerary
+- 3 hotels
+- Travel tips
 `;
 
     /* -----------------------------------------
-       CALL GEMINI API
+       GEMINI PRIMARY + GROQ FALLBACK (WITH TIMEOUT)
     ----------------------------------------- */
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-    const upstream = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }]
-          }
-        ]
-      })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
-    const rawText = await upstream.text();
+    let rawText = null;
+    let usedFallback = false;
 
-    if (!upstream.ok) {
-      console.error("Gemini Error:", rawText);
-      return NextResponse.json(
-        { error: "AI request failed", details: rawText },
-        { status: 502 }
-      );
-    }
-
-    let data;
     try {
-      data = JSON.parse(rawText);
+      const upstream = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+        }),
+      });
+
+      rawText = await upstream.text();
+      clearTimeout(timeout);
+
+      if (!upstream.ok) {
+        throw new Error(rawText);
+      }
     } catch (err) {
-      return NextResponse.json(
-        { error: "AI returned invalid JSON", details: rawText },
-        { status: 502 }
-      );
+      clearTimeout(timeout);
+
+      const fallbackLog = {
+        event: "GROQ_FALLBACK_USED",
+        reason: err.name === "AbortError" ? "TIMEOUT" : "GEMINI_ERROR",
+        destination: displayName,
+        timestamp: new Date().toISOString(),
+      };
+
+      console.warn("AI FALLBACK LOG:", fallbackLog);
+
+      usedFallback = true;
     }
 
-    const output =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      data?.candidates?.[0]?.content?.parts?.[0] ||
-      data?.text ||
-      JSON.stringify(data);
+    let output;
+
+    if (!usedFallback) {
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (err) {
+        throw new Error("Gemini returned invalid JSON");
+      }
+
+      output =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data?.candidates?.[0]?.content?.parts?.[0] ||
+        data?.text ||
+        null;
+    } else {
+      output = await generateWithGroq(compactPrompt);
+    }
 
     if (!output || output.trim() === "") {
       return NextResponse.json(
-        { error: "AI returned empty response", details: rawText },
+        { error: "AI returned empty response" },
         { status: 502 }
       );
     }

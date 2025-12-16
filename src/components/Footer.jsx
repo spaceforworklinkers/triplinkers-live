@@ -33,9 +33,26 @@ const Footer = () => {
     { name: "Privacy Policy", href: "/privacy" },
   ];
 
-  const indianCities = [
-    "Delhi", "Mumbai", "Bangalore", "Kolkata", "Chennai", 
-    "Hyderabad", "Pune", "Ahmedabad"
+  const indianCities = [  "Paris",
+  "Dubai",
+  "London",
+  "New York",
+  "Bangkok",
+  "Singapore",
+  "Tokyo",
+  "Rome",
+  "Barcelona",
+  "Istanbul",
+  "Bali",
+  "Amsterdam",
+  "Prague",
+  "Vienna",
+  "Zurich",
+  "Hong Kong",
+  "Kuala Lumpur",
+  "Maldives",
+  "Sydney",
+  "Cape Town"
   ];
 
   return (
@@ -87,7 +104,7 @@ const Footer = () => {
               alt="TripLinkers - Best Travel Agency in India"
               width={180}
               height={54}
-              className="h-12 w-auto mb-6 brightness-0 invert"
+              className="h-20 w-auto mb-6 brightness-0 invert"
             />
 
             <p className="text-gray-400 mb-6 leading-relaxed">
@@ -228,7 +245,7 @@ const Footer = () => {
               ))}
             </ul>
             
-            <div className="mt-8 p-6 bg-gray-800 rounded-2xl border border-gray-700">
+            <div className="mt-8 p-6 bg-gray-800 rounded-2xl border border-gray-700 select-none">
               <h4 className="font-bold text-white mb-2">Need Help?</h4>
               <p className="text-gray-400 text-sm mb-4">Our travel experts are ready to assist you</p>
               <Link 
@@ -245,7 +262,7 @@ const Footer = () => {
         {/* City Tags */}
         <div className="border-t border-gray-800 pt-12 mb-12">
           <h3 className="text-lg font-bold mb-6 text-white text-center">
-            Serving Travelers From All Major Indian Cities
+            Serving Travelers To All Major Tourist Spots all over Globe
           </h3>
           <div className="flex flex-wrap justify-center gap-3">
             {indianCities.map((city) => (
@@ -281,21 +298,21 @@ const Footer = () => {
                 © {new Date().getFullYear()} TripLinkers. All rights reserved.
               </p>
               <p className="text-gray-500 text-sm">
-                A product of <span className="text-gray-300 font-semibold">Spacelinkers Infotech Private Limited</span>
+                A product of <span className="text-gray-300 font-semibold"><Link href="https://spacelinkers.com"> Spacelinkers Infotech Private Limited</Link></span>
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                ISO 9001:2015
+                Safe
               </span>
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                IATA Approved
+                Secure
               </span>
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Ministry of Tourism
+                Trusted
               </span>
             </div>
           </div>

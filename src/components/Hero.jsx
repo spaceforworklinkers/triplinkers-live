@@ -389,7 +389,8 @@ function PopularSearches({ onSelect }) {
             transition={{ delay: 0.7 + idx * 0.05 }}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => onSelect(search.name)}
+           onClick={() => onSelect(search)}
+
             className="px-4 py-2 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-sm font-medium shadow-sm hover:bg-orange-100 transition-all duration-300 flex items-center gap-2"
           >
             <span>{search.emoji}</span>
@@ -635,7 +636,9 @@ export default function Hero() {
                   </label>
                   <FreePlacesAutocomplete
                     value={destination}
-                    onChange={setDestination}
+               onChange={(item) => {
+    setDestination(item);
+  }}
                     placeholder="Where to?"
                     className="font-karla"
                   />

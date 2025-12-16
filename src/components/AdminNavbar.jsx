@@ -78,6 +78,12 @@ export default function AdminNavbar() {
                   Packages
                 </Link>
                 <Link
+                  href="/admin/destinations"
+                  className={linkClass("/admin/destinations")}
+                >
+                  Destinations
+                </Link>
+                <Link
                   href="/admin/blogs"
                   className={linkClass("/admin/blogs")}
                 >

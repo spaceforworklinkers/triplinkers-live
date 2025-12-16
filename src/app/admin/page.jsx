@@ -56,6 +56,24 @@ export default function AdminDashboard() {
             </p>
           </Link>
 
+          {/* Destinations */}
+          <Link
+            href="/admin/destinations"
+            className="group rounded-2xl border bg-white p-6 shadow-sm hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-xl font-bold">
+                D
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900 group-hover:text-teal-600 transition">
+              Destinations
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Manage SEO destinations and landing pages
+            </p>
+          </Link>
+
           {/* Blogs */}
           <Link
             href="/admin/blogs"

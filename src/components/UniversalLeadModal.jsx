@@ -219,7 +219,7 @@ export default function UniversalLeadModal({
 
                   <div className="grid grid-cols-3 gap-3">
                     <Input icon={Calendar} name="days" placeholder="Days" />
-                    <Input icon={Users} name="travelers" type="number" placeholder="People" />
+                    <Input icon={Users} name="travelers" type="number" placeholder="People"  />
                     <select
                       name="budget"
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm"

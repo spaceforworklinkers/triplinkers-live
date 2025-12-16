@@ -167,13 +167,13 @@ const Footer = () => {
                 <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center group-hover:bg-orange-600 transition-colors">
                   <Phone className="w-5 h-5" />
                 </div>
-                <span>+91 (555) 123-4567</span>
+                <span>+91 92864 68530</span>
               </a>
               <div className="flex items-start gap-3 text-gray-400">
                 <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
-                <span>123 Travel Street,<br/>New Delhi, India - 110001</span>
+                <span>Spacelinkers Infotech Pvt Ltd Corporate Office,<br/>Noida, Uttar Pradesh   India - 201307</span>
               </div>
             </div>
           </div>

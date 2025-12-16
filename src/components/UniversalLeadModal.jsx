@@ -14,6 +14,7 @@ import {
   User,
   Send,
   Sparkles,
+  CircleCheck,
 } from "lucide-react";
 
 export default function UniversalLeadModal({
@@ -170,7 +171,7 @@ export default function UniversalLeadModal({
 
               <div className="relative text-center">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 mx-auto">
-                  <Sparkles className="w-6 h-6 text-white" />
+                  <CircleCheck className="w-6 h-6 text-white" />
                 </div>
 
                 {showSuccess ? (
@@ -218,7 +219,7 @@ export default function UniversalLeadModal({
 
                   <div className="grid grid-cols-3 gap-3">
                     <Input icon={Calendar} name="days" placeholder="Days" />
-                    <Input icon={Users} name="travelers" placeholder="People" />
+                    <Input icon={Users} name="travelers" type="number" placeholder="People" />
                     <select
                       name="budget"
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm"

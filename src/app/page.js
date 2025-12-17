@@ -15,9 +15,10 @@ const Home = () => {
       <Hero />
       <FeaturedPackages />
       <Highlights />
-      <Calculator />
-      <InquiryForm />
+      {/* <Calculator /> */}
+ 
       <WhyBookWithUs />
+           <InquiryForm />
       <Testimonials />
       <FAQ />
     </>

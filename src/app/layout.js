@@ -1,5 +1,6 @@
 import "./globals.css";
 import RootShell from "@/components/RootShell";
+import TripBotFloating from "@/components/TripBotFloating";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -13,6 +14,7 @@ export default function RootLayout({ children }) {
       <body className="antialiased">
         <Suspense fallback={null}>
           <RootShell>{children}</RootShell>
+          <TripBotFloating />
         </Suspense>
       </body>
     </html>

@@ -1,7 +1,9 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
-// GET — Fetch all leads (Admin)
+/* =========================
+   GET — Fetch all leads (Admin)
+========================= */
 export async function GET(req) {
   try {
     const url = new URL(req.url);
@@ -29,59 +31,85 @@ export async function GET(req) {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ success: true, leads: data });
   } catch (err) {
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }
 
-// POST — Save lead only (ALL FORMS)
+/* =========================
+   POST — Save lead (Forms + TripBot)
+========================= */
 export async function POST(req) {
   try {
     const body = await req.json();
 
+    /* ---------- Normal form fields ---------- */
     const {
+      name = null,
+      email = null,
+      phone = null,
+      from = null,
+      destination = null,
+      days = null,
+      travelers = null,
+      budget = null,
+      message = null,
+
+      /* ---------- Chatbot specific ---------- */
+      answers = null,
+      lead_action = null,
+
+      source = "Website",
+    } = body;
+
+    const insertPayload = {
       name,
       email,
       phone,
-      from,
+      from_city: from,
       destination,
       days,
       travelers,
       budget,
       message,
-      source = "Website",
-    } = body;
+      source,
+      status: "new",
+    };
+
+    /* If this is TripBot lead, attach chatbot data */
+    if (source === "trip_bot") {
+      insertPayload.answers = answers;
+      insertPayload.lead_action = lead_action;
+    }
 
     const { data, error } = await supabaseAdmin
       .from("leads")
-      .insert([
-        {
-          name,
-          email,
-          phone,
-          from_city: from,
-          destination,
-          days,
-          travelers,
-          budget,
-          message,
-          source,
-          status: "new",
-        },
-      ])
+      .insert([insertPayload])
       .select()
       .single();
 
     if (error) {
-      return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ success: true, lead: data });
   } catch (err) {
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

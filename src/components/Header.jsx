@@ -71,6 +71,11 @@ const Header = () => {
                 Packages
               </Link>
               <Link
+                href="/destinations"
+                className="text-gray-600 font-karla hover:text-teal-600 font-medium transition-colors"
+              >
+                Destinations              </Link>
+              <Link
                 href="/about"
                 className="text-gray-600 font-karla hover:text-teal-600 font-medium transition-colors"
               >

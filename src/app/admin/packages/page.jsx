@@ -29,9 +29,10 @@ export default function PackagesPage() {
     const ok = confirm("Delete this package permanently?");
     if (!ok) return;
 
-    const res = await fetch(`/api/packages/delete?id=${id}`, {
-      method: "POST",
-    });
+   const res = await fetch(`/api/packages/${id}`, {
+  method: "DELETE",
+});
+
 
     const json = await res.json();
 

@@ -1,151 +1,102 @@
   "use client";
 
-  import React, { useState } from 'react';
+  import React, { useState, useEffect } from 'react';
+
   import { MapPin, Calendar, Users, Star, ArrowRight, Clock, Heart, Sparkles } from 'lucide-react';
+
+
   
 
-  const packages = [
-    {
-      id: 1,
-      title: "Magical Santorini Escape",
-      country: "Greece",
-      image: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=800&q=80",
-      price: 1299,
-      duration: "7 Days",
-      groupSize: "2-8 People",
-      rating: 4.9,
-      reviews: 342,
-      featured: true,
-      description: "Experience the breathtaking sunsets and white-washed villages of Santorini"
-    },
-    {
-      id: 2,
-      title: "Tokyo Urban Adventure",
-      country: "Japan",
-      image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
-      price: 2199,
-      duration: "10 Days",
-      groupSize: "2-6 People",
-      rating: 4.8,
-      reviews: 567,
-      featured: true,
-      description: "Immerse yourself in the perfect blend of tradition and modernity"
-    },
-    {
-      id: 3,
-      title: "Bali Paradise Retreat",
-      country: "Indonesia",
-      image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80",
-      price: 899,
-      duration: "8 Days",
-      groupSize: "2-10 People",
-      rating: 4.7,
-      reviews: 421,
-      featured: false,
-      description: "Discover tropical beaches, ancient temples, and lush rice terraces"
-    },
-    {
-      id: 4,
-      title: "Swiss Alps Explorer",
-      country: "Switzerland",
-      image: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&q=80",
-      price: 2499,
-      duration: "9 Days",
-      groupSize: "2-6 People",
-      rating: 4.9,
-      reviews: 289,
-      featured: true,
-      description: "Journey through majestic mountains and charming alpine villages"
-    },
-    {
-      id: 5,
-      title: "Marrakech Mystique",
-      country: "Morocco",
-      image: "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=800&q=80",
-      price: 1099,
-      duration: "6 Days",
-      groupSize: "2-8 People",
-      rating: 4.6,
-      reviews: 198,
-      featured: false,
-      description: "Explore vibrant souks, stunning palaces, and the Sahara Desert"
-    },
-    {
-      id: 6,
-      title: "New Zealand Wonders",
-      country: "New Zealand",
-      image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&q=80",
-      price: 2799,
-      duration: "12 Days",
-      groupSize: "2-8 People",
-      rating: 4.9,
-      reviews: 456,
-      featured: false,
-      description: "Experience dramatic landscapes from fjords to glaciers"
-    },
-    {
-      id: 7,
-      title: "Iceland Northern Lights",
-      country: "Iceland",
-      image: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80",
-      price: 1899,
-      duration: "7 Days",
-      groupSize: "2-6 People",
-      rating: 4.8,
-      reviews: 334,
-      featured: true,
-      description: "Chase the aurora borealis and explore volcanic landscapes"
-    },
-    {
-      id: 8,
-      title: "Parisian Romance",
-      country: "France",
-      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80",
-      price: 1599,
-      duration: "6 Days",
-      groupSize: "2-4 People",
-      rating: 4.7,
-      reviews: 512,
-      featured: false,
-      description: "Fall in love with the City of Lights and its timeless charm"
-    },
-    {
-      id: 9,
-      title: "Dubai Luxury Experience",
-      country: "UAE",
-      image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80",
-      price: 1799,
-      duration: "5 Days",
-      groupSize: "2-8 People",
-      rating: 4.8,
-      reviews: 623,
-      featured: true,
-      description: "Indulge in world-class luxury and modern Arabian hospitality"
-    },
-    {
-      id: 10,
-      title: "Maldives Beach Bliss",
-      country: "Maldives",
-      image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&q=80",
-      price: 3299,
-      duration: "7 Days",
-      groupSize: "2-4 People",
-      rating: 5.0,
-      reviews: 789,
-      featured: true,
-      description: "Escape to pristine beaches and overwater luxury bungalows"
-    }
-  ];
-
   const TravelPackages = () => {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [favorites, setFavorites] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+const [favorites, setFavorites] = useState([]);
+
+// FILTER STATE
+const [selectedPrice, setSelectedPrice] = useState(null);
+const [selectedDuration, setSelectedDuration] = useState(null);
+
+// PACKAGES STATE
+const [allPackages, setAllPackages] = useState([]);
+  
+// LOCATION FILTER
+const [selectedLocation, setSelectedLocation] = useState(null);
+const [availableLocations, setAvailableLocations] = useState([]);
+
+
+useEffect(() => {
+  fetchFilteredPackages();
+}, [selectedPrice, selectedDuration]);
+useEffect(() => {
+  async function loadAllPackages() {
+    try {
+      const res = await fetch("/api/packages");
+      const json = await res.json();
+      setAllPackages(json.packages || []);
+    } catch (err) {
+      console.error("Failed to load packages");
+      const locations = [...new Set((json.packages || [])
+  .map(p => p.location)
+  .filter(Boolean))];
+
+setAvailableLocations(locations);
+
+    }
+  }
+
+  loadAllPackages();
+}, []);
+
+
+  const fetchFilteredPackages = async () => {
+  try {
+    const params = new URLSearchParams();
+
+    // PRICE FILTER
+    if (selectedPrice === "low") {
+      params.append("maxPrice", 50000);
+    }
+    if (selectedPrice === "mid") {
+      params.append("minPrice", 50000);
+      params.append("maxPrice", 100000);
+    }
+    if (selectedPrice === "high") {
+      params.append("minPrice", 100000);
+    }
+// LOCATION FILTER
+if (selectedLocation) {
+  params.append("location", selectedLocation);
+}
+
+    // DURATION FILTER
+    if (selectedDuration === "short") {
+      params.append("maxDays", 5);
+    }
+    if (selectedDuration === "medium") {
+      params.append("minDays", 6);
+      params.append("maxDays", 8);
+    }
+    if (selectedDuration === "long") {
+      params.append("minDays", 9);
+    }
+
+    const res = await fetch(`/api/packages?${params.toString()}`);
+    const json = await res.json();
+
+    setAllPackages(json.packages || []);
+    setCurrentPage(1);
+  } catch (err) {
+    console.error("Failed to fetch filtered packages");
+  }
+};
+
     const packagesPerPage = 6;
 
     const indexOfLastPackage = currentPage * packagesPerPage;
     const indexOfFirstPackage = indexOfLastPackage - packagesPerPage;
-    const currentPackages = packages.slice(indexOfFirstPackage, indexOfLastPackage);
-    const totalPages = Math.ceil(packages.length / packagesPerPage);
+    const currentPackages = allPackages.slice(indexOfFirstPackage, indexOfLastPackage);
+
+  const totalPages = Math.ceil(allPackages.length / packagesPerPage);
+
 
     const toggleFavorite = (id) => {
       setFavorites(prev => 
@@ -206,6 +157,99 @@
               <div className="text-sm text-gray-600">Support</div>
             </div>
           </div>
+{/* Filters */}
+<div className="mb-10">
+  <div className="flex flex-col gap-6">
+
+    {/* Price Filters */}
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        Filter by Price
+      </h3>
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "All", value: null },
+          { label: "Under ₹50k", value: "low" },
+          { label: "₹50k – ₹1L", value: "mid" },
+          { label: "₹1L+", value: "high" },
+        ].map((item) => (
+          <button
+            key={item.label}
+            onClick={() => setSelectedPrice(item.value)}
+            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+              selectedPrice === item.value
+                ? "bg-orange-600 text-white border-orange-600"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-orange-50"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* Duration Filters */}
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        Filter by Duration
+      </h3>
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "All", value: null },
+          { label: "Up to 5 Days", value: "short" },
+          { label: "6–8 Days", value: "medium" },
+          { label: "9+ Days", value: "long" },
+        ].map((item) => (
+          <button
+            key={item.label}
+            onClick={() => setSelectedDuration(item.value)}
+            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+              selectedDuration === item.value
+                ? "bg-orange-600 text-white border-orange-600"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-orange-50"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+{/* Location Filter */}
+<div>
+  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+    Filter by Location
+  </h3>
+
+  <div className="flex flex-wrap gap-3">
+    <button
+      onClick={() => setSelectedLocation(null)}
+      className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+        selectedLocation === null
+          ? "bg-orange-600 text-white border-orange-600"
+          : "bg-white text-gray-700 border-gray-200 hover:bg-orange-50"
+      }`}
+    >
+      All
+    </button>
+
+    {availableLocations.map((loc) => (
+      <button
+        key={loc}
+        onClick={() => setSelectedLocation(loc)}
+        className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${
+          selectedLocation === loc
+            ? "bg-orange-600 text-white border-orange-600"
+            : "bg-white text-gray-700 border-gray-200 hover:bg-orange-50"
+        }`}
+      >
+        {loc}
+      </button>
+    ))}
+  </div>
+</div>
+
+  </div>
+</div>
 
           {/* Package Results Info */}
           <div className="flex items-center justify-between mb-8">
@@ -214,12 +258,19 @@
                 Popular Packages
               </h2>
               <p className="text-gray-600">
-                Showing {indexOfFirstPackage + 1}-{Math.min(indexOfLastPackage, packages.length)} of {packages.length} packages
+Showing {indexOfFirstPackage + 1}-{Math.min(indexOfLastPackage, allPackages.length)} of {allPackages.length} packages
+
               </p>
             </div>
           </div>
 
           {/* Packages Grid */}
+          {allPackages.length === 0 && (
+  <div className="text-center py-20 text-gray-500 text-lg">
+    No packages match your filters. Try adjusting them.
+  </div>
+)}
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {currentPackages.map((pkg, index) => (
               <div
@@ -230,7 +281,8 @@
                 {/* Image Container */}
                 <div className="relative overflow-hidden aspect-[4/3]">
                   <img
-                    src={pkg.image}
+                   src={pkg.banner_url || "https://via.placeholder.com/800x600?text=TripLinkers"}
+
                     alt={pkg.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -239,7 +291,8 @@
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"></div>
                   
                   {/* Featured Badge */}
-                  {pkg.featured && (
+              {pkg.featured === true && (
+
                     <div className="absolute top-4 left-4 bg-orange-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
                       Featured
@@ -262,7 +315,7 @@
                   <div className="absolute bottom-4 left-4">
                     <div className="flex items-center gap-2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full">
                       <MapPin className="w-4 h-4 text-orange-600" />
-                      <span className="text-sm font-semibold text-gray-900">{pkg.country}</span>
+                      <span className="text-sm font-semibold text-gray-900">{pkg.location}</span>
                     </div>
                   </div>
                 </div>
@@ -276,7 +329,7 @@
 
                   {/* Description */}
                   <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                    {pkg.description}
+                    {pkg.short_description || "A thoughtfully crafted travel experience."}
                   </p>
 
                   {/* Rating */}
@@ -292,7 +345,7 @@
                   <div className="flex items-center gap-4 mb-6 text-sm text-gray-600">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-4 h-4 text-orange-600" />
-                      <span>{pkg.duration}</span>
+                      <span>{pkg.duration} Days</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Users className="w-4 h-4 text-orange-600" />
@@ -305,7 +358,7 @@
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Starting from</div>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-orange-600">${pkg.price}</span>
+                        <span className="text-3xl font-bold text-orange-600">₹{pkg.price}</span>
                         <span className="text-gray-500">/person</span>
                       </div>
                     </div>

@@ -44,7 +44,7 @@ export async function POST(req) {
       { expiresIn: "7d" }
     );
 
-    // 4. Set secure HTTP-only cookie
+    // 4. Set secure HTTP-only cookie (PRODUCTION SAFE)
     const response = NextResponse.json({
       success: true,
       message: "Login successful",
@@ -52,7 +52,7 @@ export async function POST(req) {
 
     response.cookies.set("admin_session", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // FIXED: always true for Vercel production
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
@@ -77,10 +77,10 @@ export async function DELETE() {
     message: "Logout successful",
   });
 
-  // Destroy cookie
+  // Destroy cookie (MATCH LOGIN CONFIG)
   response.cookies.set("admin_session", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "lax",
     expires: new Date(0),
     path: "/",

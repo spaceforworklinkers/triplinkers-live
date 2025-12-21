@@ -4,6 +4,8 @@ import React from "react";
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, Linkedin, Globe, Award, Shield, Headphones, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import PWAInstallMini from "@/components/PWAInstallMini";
+
 
 const Footer = () => {
   const popularDestinations = [
@@ -302,6 +304,10 @@ const Footer = () => {
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+              <div className="mt-6 flex justify-center">
+  <PWAInstallMini />
+</div>
+
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 Safe

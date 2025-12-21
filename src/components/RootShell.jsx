@@ -13,6 +13,7 @@ export default function RootShell({ children }) {
       {!isAdmin && <Header />}
       {children}
       {!isAdmin && <Footer />}
+    
     </>
   );
 }

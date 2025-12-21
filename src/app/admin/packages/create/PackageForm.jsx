@@ -46,14 +46,67 @@ const RichTextEditor = ({ value, onChange }) => {
   );
 };
 
+/* ---------- Chip Input ---------- */
+const ChipInput = ({ label, values, setValues, placeholder }) => {
+  const [input, setInput] = useState("");
+
+  const addChip = (e) => {
+    if (e.key === "Enter" && input.trim()) {
+      e.preventDefault();
+      if (!values.includes(input.trim())) {
+        setValues([...values, input.trim()]);
+      }
+      setInput("");
+    }
+  };
+
+  const removeChip = (index) => {
+    setValues(values.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div>
+      <label className="font-medium">{label}</label>
+
+      <div className="flex flex-wrap gap-2 border p-2 rounded mt-2 bg-white">
+        {values.map((item, index) => (
+          <span
+            key={index}
+            className="flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm"
+          >
+            {item}
+            <button
+              type="button"
+              onClick={() => removeChip(index)}
+              className="font-bold"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={addChip}
+          placeholder={placeholder}
+          className="flex-1 outline-none min-w-[140px]"
+        />
+      </div>
+    </div>
+  );
+};
+
+/* ---------- Package Form ---------- */
 export default function PackageForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [shortDesc, setShortDesc] = useState("");
   const [itinerary, setItinerary] = useState("");
-  const [inclusions, setInclusions] = useState("[]");
-  const [exclusions, setExclusions] = useState("[]");
+
+  const [inclusions, setInclusions] = useState([]);
+  const [exclusions, setExclusions] = useState([]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -64,16 +117,8 @@ export default function PackageForm() {
 
     body.short_desc = shortDesc;
     body.itinerary = itinerary;
-
-    // ✅ FIX: Ensure JSON is sent to backend
-    try {
-      body.inclusions = inclusions ? JSON.parse(inclusions) : [];
-      body.exclusions = exclusions ? JSON.parse(exclusions) : [];
-    } catch (err) {
-      alert("Inclusions and exclusions must be valid JSON arrays");
-      setLoading(false);
-      return;
-    }
+    body.inclusions = inclusions;
+    body.exclusions = exclusions;
 
     const res = await fetch("/api/packages", {
       method: "POST",
@@ -144,25 +189,19 @@ export default function PackageForm() {
         <RichTextEditor value={itinerary} onChange={setItinerary} />
       </div>
 
-      <div>
-        <label className="font-medium">Inclusions (JSON)</label>
-        <textarea
-          value={inclusions}
-          onChange={(e) => setInclusions(e.target.value)}
-          placeholder='["Hotel", "Meals"]'
-          className="w-full border p-2 rounded min-h-[100px]"
-        />
-      </div>
+      <ChipInput
+        label="Inclusions"
+        values={inclusions}
+        setValues={setInclusions}
+        placeholder="Type inclusion and press Enter"
+      />
 
-      <div>
-        <label className="font-medium">Exclusions (JSON)</label>
-        <textarea
-          value={exclusions}
-          onChange={(e) => setExclusions(e.target.value)}
-          placeholder='["Flights", "Personal expenses"]'
-          className="w-full border p-2 rounded min-h-[100px]"
-        />
-      </div>
+      <ChipInput
+        label="Exclusions"
+        values={exclusions}
+        setValues={setExclusions}
+        placeholder="Type exclusion and press Enter"
+      />
 
       <button
         type="submit"

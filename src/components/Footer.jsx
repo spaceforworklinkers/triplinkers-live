@@ -58,7 +58,7 @@ const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white">
       {/* Trust Badges Section */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-500 py-12">
+      {/* <div className="bg-gradient-to-r from-orange-600 to-orange-500 py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
@@ -91,7 +91,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-16">

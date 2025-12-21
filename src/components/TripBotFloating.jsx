@@ -17,6 +17,7 @@ const SUPPRESS_DURATION = 24 * 60 * 60 * 1000;
 const AUTO_OPEN_DELAY = 5000;
 const REOPEN_DELAY = 10000;
 
+
 const DEFAULT_MESSAGES = [
   "Hi 👋 How may I help you?",
   "Need help planning your trip?",

@@ -1,20 +1,21 @@
+"use client";
+
 import "./globals.css";
 import RootShell from "@/components/RootShell";
 import TripBotFloating from "@/components/TripBotFloating";
 import { Suspense } from "react";
-
-export const metadata = {
-  title: "TripLinkers by Spacelinkers",
-  description: "Plan and share your trips effortlessly with TripLinkers.",
-};
+import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
+
   return (
     <html lang="en">
       <body className="antialiased">
         <Suspense fallback={null}>
           <RootShell>{children}</RootShell>
-          <TripBotFloating />
+          {!isAdminRoute && <TripBotFloating />}
         </Suspense>
       </body>
     </html>

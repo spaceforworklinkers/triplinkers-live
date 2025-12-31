@@ -516,6 +516,7 @@ export default function Hero() {
 
     // SUCCESS path
     localStorage.setItem("trip_data", data.output);
+    localStorage.setItem("trip_provider", data.provider || "gemini");
 
     // keep showing the modal briefly for premium feel
     setTimeout(() => {

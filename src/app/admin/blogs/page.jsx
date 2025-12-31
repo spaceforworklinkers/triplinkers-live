@@ -33,7 +33,7 @@ export default async function BlogsPage() {
   const inactiveBlogs = totalBlogs - activeBlogs;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 sm:p-8">
+    <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
@@ -47,7 +47,7 @@ export default async function BlogsPage() {
 
         <Link
           href="/admin/blogs/create"
-          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2.5 rounded-lg font-semibold shadow-sm transition"
         >
           + Create Blog
         </Link>
@@ -147,7 +147,7 @@ export default async function BlogsPage() {
 
                   <Link
                     href={`/admin/blogs/edit/${blog.id}`}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border text-blue-600 hover:bg-blue-50"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border text-orange-600 hover:bg-orange-50"
                   >
                     <Pencil size={16} />
                     Edit
@@ -166,6 +166,6 @@ export default async function BlogsPage() {
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

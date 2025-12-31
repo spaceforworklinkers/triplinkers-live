@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
           <RootShell>{children}</RootShell>
 
           {/* Floating widgets */}
-                {!isAdminRoute && <TripBotFloating />}
+                {/* {!isAdminRoute && <TripBotFloating />}  */}
         </Suspense>
       </body>
     </html>

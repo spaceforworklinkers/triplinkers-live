@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams, notFound } from "next/navigation";
+import { Check, X } from "lucide-react";
 
 export default function PackageDetailPage() {
   const { slug } = useParams();
@@ -60,6 +61,51 @@ export default function PackageDetailPage() {
     }
   }
 
+  // Helper to render inclusions/exclusions safely
+  const renderList = (data, isExclusion = false) => {
+    if (!data) return null;
+
+    // IF ARRAY (New Format)
+    if (Array.isArray(data)) {
+      if (data.length === 0) return null;
+      return (
+        <ul className="space-y-2 mt-2">
+          {data.map((item, i) => (
+             <li key={i} className="flex items-center gap-2 text-slate-700">
+               {isExclusion ? <X className="text-red-500 w-4 h-4" /> : <Check className="text-green-500 w-4 h-4" />}
+               <span>{item}</span>
+             </li>
+          ))}
+        </ul>
+      );
+    }
+
+    // IF STRING (Might be JSON string or HTML)
+    if (typeof data === "string") {
+      // Try parsing JSON first
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+           return (
+            <ul className="space-y-2 mt-2">
+              {parsed.map((item, i) => (
+                 <li key={i} className="flex items-center gap-2 text-slate-700">
+                   {isExclusion ? <X className="text-red-500 w-4 h-4" /> : <Check className="text-green-500 w-4 h-4" />}
+                   <span>{item}</span>
+                 </li>
+              ))}
+            </ul>
+          );
+        }
+      } catch (e) {
+        // Not JSON, assume HTML string (Classic)
+        return <div className="prose max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: data }} />;
+      }
+    }
+
+    return null;
+  };
+
   if (loading) {
     return <p className="p-6">Loading package...</p>;
   }
@@ -68,13 +114,17 @@ export default function PackageDetailPage() {
     <div className="min-h-screen bg-white">
       {/* Banner */}
       <div className="relative h-[420px] w-full">
-        <Image
-          src={pkg.banner_url}
-          alt={pkg.title}
-          fill
-          className="object-cover"
-          priority
-        />
+        {pkg.banner_url ? (
+           <Image
+             src={pkg.banner_url}
+             alt={pkg.title}
+             fill
+             className="object-cover"
+             priority
+           />
+        ) : (
+           <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">No Image</div>
+        )}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute bottom-6 left-6 text-white">
           <h1 className="text-4xl font-bold">{pkg.title}</h1>
@@ -95,7 +145,7 @@ export default function PackageDetailPage() {
 
         {pkg.short_desc && (
           <div
-            className="prose max-w-none"
+            className="prose max-w-none text-slate-700"
             dangerouslySetInnerHTML={{ __html: pkg.short_desc }}
           />
         )}
@@ -104,32 +154,26 @@ export default function PackageDetailPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">Itinerary</h2>
             <div
-              className="prose max-w-none"
+              className="prose max-w-none text-slate-700"
               dangerouslySetInnerHTML={{ __html: pkg.itinerary }}
             />
           </section>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {pkg.inclusions && (
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Inclusions</h3>
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: pkg.inclusions }}
-              />
-            </div>
-          )}
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+             <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+               <span className="bg-green-100 text-green-600 p-1 rounded"><Check size={20} /></span> Inclusions
+             </h3>
+             {renderList(pkg.inclusions)}
+          </div>
 
-          {pkg.exclusions && (
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Exclusions</h3>
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: pkg.exclusions }}
-              />
-            </div>
-          )}
+          <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+             <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+               <span className="bg-red-100 text-red-600 p-1 rounded"><X size={20} /></span> Exclusions
+             </h3>
+             {renderList(pkg.exclusions, true)}
+          </div>
         </div>
       </div>
 
@@ -145,8 +189,8 @@ export default function PackageDetailPage() {
 
       {/* Lead Modal */}
       {open && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
             <h3 className="text-xl font-semibold mb-4">
               Enquire for {pkg.title}
             </h3>

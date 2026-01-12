@@ -12,7 +12,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const metadata = {
-  title: "Admin Dashboard | TripLinkers",
+  title: "Dashboard Overview | Admin",
   description: "Secure admin access for TripLinkers management.",
 };
 

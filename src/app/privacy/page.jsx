@@ -1,3 +1,8 @@
+export const metadata = {
+  title: "Privacy Policy | TripLinkers",
+  description: "Read our privacy policy to understand how TripLinkers collects, uses, and protects your personal data.",
+};
+
 export default function Privacy() {
   return (
     <div className="py-20 bg-slate-50">

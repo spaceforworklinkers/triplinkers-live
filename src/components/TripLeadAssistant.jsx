@@ -137,17 +137,14 @@ export default function TripLeadAssistant() {
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
 
-    // 2. Check for Conversion Triggers (only if in AI mode)
+    // 2. SOFT Conversion Triggers (let AI talk first, but offer buttons)
     if (chatMode === CHAT_MODES.AI) {
-      const lowerText = text.toLowerCase();
-      const isTrigger = TRIGGER_KEYWORDS.some(kw => lowerText.includes(kw)) || payloadValue === "talk_expert" || payloadValue === "check_prices";
-
-      if (isTrigger) {
+      if (payloadValue === "talk_expert" || payloadValue === "get_quote") {
         setIsTyping(false);
         setChatMode(CHAT_MODES.COLLECTING_METHOD);
-        addBotMessage("I can prepare a personalized quote for you. Would you like me to connect you with a travel expert or send the plan here?", [
-          { label: "Get Quote 📩", value: "get_quote" },
-          { label: "Talk to an Expert 📞", value: "talk_expert" }
+        addBotMessage("I'd love to help with that! Where should I send your travel plan? WhatsApp or Email?", [
+          { label: "WhatsApp �", value: "whatsapp" },
+          { label: "Email ✉️", value: "email" }
         ]);
         return;
       }
@@ -221,7 +218,22 @@ export default function TripLeadAssistant() {
   };
 
   const addBotMessage = (content, options = null) => {
-    const botMsg = { id: Date.now() + 1, role: "model", content, options };
+    // Ensure "Get Quote" and "Talk to Expert" are ALWAYS present in AI mode
+    let finalOptions = options;
+    if (chatMode === CHAT_MODES.AI) {
+        const defaultOptions = [
+            { label: "Get Quote 📩", value: "get_quote" },
+            { label: "Talk to Expert 📞", value: "talk_expert" }
+        ];
+        if (!options) {
+            finalOptions = defaultOptions;
+        } else {
+            const hasQuote = options.some(o => o.value === "get_quote");
+            if (!hasQuote) finalOptions = [...options, ...defaultOptions];
+        }
+    }
+
+    const botMsg = { id: Date.now() + 1, role: "model", content, options: finalOptions };
     setMessages(prev => [...prev, botMsg]);
   };
 
@@ -412,8 +424,8 @@ export default function TripLeadAssistant() {
             />
             {hasUnread && (
               <span className="absolute top-4 right-4 flex h-5 w-5 z-20">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 border-2 border-white"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-5 w-5 bg-green-500 border-2 border-white"></span>
               </span>
             )}
           </div>

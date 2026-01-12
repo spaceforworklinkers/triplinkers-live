@@ -81,7 +81,13 @@ export default function AdminNavbar() {
                   href="/admin/destinations"
                   className={linkClass("/admin/destinations")}
                 >
-                  Destinations
+                  Global
+                </Link>
+                <Link
+                  href="/admin/indian-destinations"
+                  className={linkClass("/admin/indian-destinations")}
+                >
+                  India
                 </Link>
                 <Link
                   href="/admin/blogs"

@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { generateUniqueSlug } from "@/lib/slugify";
 
-export async function GET() {
-  const { data, error } = await supabaseAdmin
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const limitStr = searchParams.get("limit");
+  const limit = limitStr ? parseInt(limitStr, 10) : null;
+
+  let query = supabaseAdmin
     .from("destinations")
     .select("*")
     .order("created_at", { ascending: false });
+  
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json(

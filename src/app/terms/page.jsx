@@ -1,3 +1,8 @@
+export const metadata = {
+  title: "Terms & Conditions | TripLinkers",
+  description: "Review the terms and conditions for booking travel packages and services with TripLinkers.",
+};
+
 export default function Terms() {
   return (
     <div className="py-20 bg-slate-50">

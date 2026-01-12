@@ -3,6 +3,11 @@ import { Eye, Pencil, Trash2 } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { verifyAdminSession } from "@/lib/adminAuth";
 
+export const metadata = {
+  title: "Blogs Management | Admin Dashboard",
+  description: "Secure admin access for managing blog posts.",
+};
+
 export default async function BlogsPage() {
   const session = await verifyAdminSession();
   if (!session.authenticated) return null;

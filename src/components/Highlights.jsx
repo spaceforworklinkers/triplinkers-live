@@ -85,7 +85,7 @@ const Highlights = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-karla">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 font-karla">
             Top Travel <span className="text-teal-600">Highlights</span>
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-inter">

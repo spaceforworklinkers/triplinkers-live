@@ -1,4 +1,4 @@
-"use client";
+
 
 import React from "react";
 import {
@@ -343,6 +343,11 @@ const About = () => {
       </div>
     </div>
   );
+};
+
+export const metadata = {
+  title: "About Us | TripLinkers - Expert Travel Planners since 2024",
+  description: "Learn about TripLinkers, our mission, vision, and how we craft personalized travel experiences globally. Your journey starts here.",
 };
 
 export default About;

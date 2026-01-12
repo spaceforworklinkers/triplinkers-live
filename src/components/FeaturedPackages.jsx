@@ -76,7 +76,7 @@ const FeaturedPackages = () => {
           </Link>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {featuredPackages.map((pkg, index) => (
             <motion.div
               key={pkg.id}

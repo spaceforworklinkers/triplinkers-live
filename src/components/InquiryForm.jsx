@@ -182,11 +182,11 @@ const InquiryForm = () => {
         >
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-200"
+            className="bg-white rounded-3xl shadow-xl p-6 md:p-12 border border-gray-200"
           >
 
             {/* ROW 1 - NAME + PHONE */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Name *</label>
                 <input
@@ -229,7 +229,7 @@ const InquiryForm = () => {
             </div>
 
             {/* ROW 3 - SOURCE + DESTINATION */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Where are you traveling from? *</label>
                 <input
@@ -258,7 +258,7 @@ const InquiryForm = () => {
             </div>
 
             {/* ROW 4 - MONTH + TRAVELERS */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">Travel Month *</label>
                 <select

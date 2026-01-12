@@ -11,6 +11,11 @@ import {
 } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+export const metadata = {
+  title: "Admin Dashboard | TripLinkers",
+  description: "Secure admin access for TripLinkers management.",
+};
+
 export const dynamic = 'force-dynamic';
 
 async function getStats() {

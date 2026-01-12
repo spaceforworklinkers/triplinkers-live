@@ -26,6 +26,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     { title: "Destinations", href: "/admin/destinations", icon: MapPin },
     { title: "Blogs", href: "/admin/blogs", icon: FileText },
     { title: "Categories", href: "/admin/categories", icon: FolderOpen },
+    { title: "User View", href: "/", icon: UserCircle },
   ];
 
   return (
@@ -47,9 +48,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
       >
         {/* Brand */}
         <div className="flex h-16 items-center px-6 border-b border-slate-800">
-          <Link href="/admin" className="flex items-center gap-2 font-bold text-gray-100 text-lg tracking-tight">
-            <span>TripLinkers</span>
-            <span className="text-orange-500">Admin</span>
+          <Link href="/admin" className="flex items-center gap-2 font-bold text-gray-100 text-lg tracking-tight ">
+            <span className="text-orange-500 text-xl">Hello, Admin </span>
           </Link>
           <button 
             onClick={() => setIsOpen(false)}
@@ -87,7 +87,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         {/* Footer: Settings & User Profile */}
         <div className="border-t border-slate-800">
            {/* Settings Link */}
-           <div className="p-2">
+           {/* <div className="p-2">
              <Link
                href="/admin/settings"
                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:text-gray-200 hover:bg-slate-800 rounded-lg transition-colors"
@@ -95,7 +95,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                <Settings className="w-5 h-5" />
                Settings
              </Link>
-           </div>
+           </div> */}
 
            {/* User Profile */}
            <div className="p-4 border-t border-slate-800 bg-slate-900/50">
@@ -104,8 +104,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                  <UserCircle className="w-6 h-6" />
                </div>
                <div className="flex-1 overflow-hidden">
-                 <div className="text-sm font-semibold text-gray-200 truncate">Admin User</div>
-                 <div className="text-xs text-slate-500 truncate">Super Admin</div>
+                 <div className="text-sm font-semibold text-gray-200 truncate">Admin </div>
+                 <div className="text-xs text-slate-500 truncate">TripLinkers</div>
                </div>
                <button 
                  onClick={() => {

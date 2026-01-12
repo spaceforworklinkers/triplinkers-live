@@ -25,4 +25,10 @@ const Home = () => {
   );
 };
 
+export const metadata = {
+  title: "TripLinkers - AI Powered Personalized Travel Itineraries",
+  description: "Create custom travel itineraries in seconds with TripLinkers. Powered by AI to plan your perfect trip, efficiently and within budget.",
+  keywords: "travel planner, ai itinerary, trip planning, vacation planner, travel agency",
+};
+
 export default Home;

@@ -28,8 +28,8 @@ export default function AdminHeader({ onMenuClick }) {
         {/* User Profile */}
         <div className="flex items-center gap-3">
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-slate-900">Admin User</p>
-            <p className="text-xs text-slate-500">Super Admin</p>
+            <p className="text-sm font-medium text-slate-900">Welcome Admin</p>
+            <p className="text-xs text-slate-500">TripLinkers</p>
           </div>
           <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center border border-orange-200">
              <User className="w-4 h-4 text-orange-600" />

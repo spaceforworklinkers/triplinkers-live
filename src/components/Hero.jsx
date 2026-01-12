@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import { Search, MapPin, Plane, Globe, Sparkles } from "lucide-react";
 
 /* ------------------------------------------------------------------
@@ -110,93 +109,38 @@ function FreePlacesAutocomplete({
       </div>
 
       {open && results.length > 0 && (
-        <motion.ul
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="absolute z-50 w-full bg-white rounded-xl shadow-2xl border border-gray-200 mt-2 max-h-60 overflow-auto"
-        >
+        <ul className="absolute z-50 w-full bg-white rounded-xl shadow-2xl border border-gray-200 mt-2 max-h-60 overflow-auto animate-fade-in-up">
           {results.map((r, idx) => (
-            <motion.li
+            <li
               key={r.value.place_id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.03 }}
               className="px-4 py-3 cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 text-sm text-gray-700 transition-all duration-200 border-b border-gray-100 last:border-b-0 font-medium"
               onClick={() => select(r)}
             >
               {r.label}
-            </motion.li>
+            </li>
           ))}
-        </motion.ul>
+        </ul>
       )}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------
-   3D Loader Animation
+   3D Loader Animation (CSS Only)
 ------------------------------------------------------------------- */
 function ThreeDLoader() {
   return (
-    <div className="relative w-32 h-32 mx-auto mb-8">
-      <motion.div
-        animate={{
-          rotateY: [0, 360],
-          rotateX: [0, 15, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-        className="relative w-full h-full"
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        <motion.div
-          className="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute inset-2 rounded-full border-4 border-blue-500 border-r-transparent"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute inset-4 rounded-full border-4 border-teal-500 border-b-transparent"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        />
+    <div className="relative w-32 h-32 mx-auto mb-8 perspective-1000">
+      <div className="relative w-full h-full animate-spin-slow preserve-3d">
+        <div className="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent animate-spin-reverse" />
+        <div className="absolute inset-2 rounded-full border-4 border-blue-500 border-r-transparent animate-spin-normal" />
+        <div className="absolute inset-4 rounded-full border-4 border-teal-500 border-b-transparent animate-spin-reverse" />
 
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
+        <div className="absolute inset-0 flex items-center justify-center animate-pulse-scale">
           <Plane className="w-8 h-8 text-orange-500" />
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        className="absolute -inset-4 rounded-full bg-gradient-to-r from-orange-500/20 to-blue-500/20 blur-xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.6, 0.3],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+        </div>
+      </div>
+      <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-orange-500/20 to-blue-500/20 blur-xl animate-pulse-slow" />
     </div>
   );
 }
@@ -224,8 +168,7 @@ const travelFacts = [
 function LoadingModal({ isOpen, onClose }) {
   const [factIndex, setFactIndex] = useState(0);
   const [randomFacts, setRandomFacts] = useState([]);
-  const [isExiting, setIsExiting] = useState(false);
-
+  
   useEffect(() => {
     if (isOpen) {
       const shuffled = [...travelFacts]
@@ -233,7 +176,6 @@ function LoadingModal({ isOpen, onClose }) {
         .slice(0, 6);
       setRandomFacts(shuffled);
       setFactIndex(0);
-      setIsExiting(false);
     }
   }, [isOpen]);
 
@@ -247,116 +189,49 @@ function LoadingModal({ isOpen, onClose }) {
     return () => clearInterval(interval);
   }, [isOpen, randomFacts]);
 
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence mode="wait">
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, rotateX: -15 }}
-            animate={{
-              scale: isExiting ? 0.9 : 1,
-              opacity: isExiting ? 0 : 1,
-              rotateX: 0,
-              y: isExiting ? -50 : 0,
-            }}
-            exit={{ scale: 0.8, opacity: 0, rotateX: 15 }}
-            transition={{
-              type: "spring",
-              damping: 25,
-              stiffness: 300,
-              duration: 0.5,
-            }}
-            className="bg-gradient-to-br from-white via-white to-orange-50 rounded-3xl shadow-2xl p-8 md:p-12 max-w-lg w-full text-center relative overflow-hidden border border-orange-100"
-          >
-            <motion.div
-              className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-blue-200/40 rounded-full blur-3xl"
-              animate={{
-                x: [0, 50, 0],
-                y: [0, -30, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md px-4 animate-fade-in">
+      <div className="bg-gradient-to-br from-white via-white to-orange-50 rounded-3xl shadow-2xl p-8 md:p-12 max-w-lg w-full text-center relative overflow-hidden border border-orange-100 animate-scale-up">
+        
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-blue-200/40 rounded-full blur-3xl animate-float" />
 
-            <ThreeDLoader />
+        <ThreeDLoader />
 
-            <motion.h3
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent mb-3"
-            >
-              Planning Your Adventure
-            </motion.h3>
+        <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-green-600 bg-clip-text text-transparent mb-3 animate-slide-up">
+          Planning Your Adventure
+        </h3>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-gray-500 text-sm mb-8"
-            >
-              Crafting your perfect itinerary with AI
-            </motion.p>
+        <p className="text-gray-500 text-sm mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          Crafting your perfect itinerary with AI
+        </p>
 
-            <div className="min-h-[80px] flex items-center justify-center px-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={factIndex}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="relative"
-                >
-                  <Sparkles className="w-5 h-5 text-orange-400 absolute -top-6 left-1/2 -translate-x-1/2" />
-                  <p className="text-gray-700 text-sm md:text-base font-medium leading-relaxed">
-                    {randomFacts[factIndex]}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
+        <div className="min-h-[80px] flex items-center justify-center px-4">
+            <div key={factIndex} className="relative animate-fade-in">
+              <Sparkles className="w-5 h-5 text-orange-400 absolute -top-6 left-1/2 -translate-x-1/2" />
+              <p className="text-gray-700 text-sm md:text-base font-medium leading-relaxed">
+                {randomFacts[factIndex]}
+              </p>
             </div>
+        </div>
 
-            <motion.div
-              className="flex items-center justify-center gap-2 mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {[0, 1, 2, 3].map((i) => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.3, 1, 0.3],
-                  }}
-                  transition={{
-                    duration: 1.2,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                  }}
-                  className="w-2 h-2 bg-gradient-to-r from-orange-500 to-blue-500 rounded-full"
-                />
-              ))}
-            </motion.div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="w-2 h-2 bg-gradient-to-r from-orange-500 to-blue-500 rounded-full animate-bounce-custom"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
 /* ------------------------------------------------------------------
-   Popular Searches
+   Popular Searches (CSS Only)
 ------------------------------------------------------------------- */
 const popularSearches = [
   { name: "Dubai", emoji: "🏙️", lat: 25.276987, lon: 55.296249 },
@@ -371,34 +246,25 @@ const popularSearches = [
 
 function PopularSearches({ onSelect }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.6 }}
-    >
+    <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
       <p className="text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
         <Sparkles className="w-4 h-4" />
         Popular Destinations
       </p>
       <div className="flex flex-wrap gap-2">
         {popularSearches.map((search, idx) => (
-          <motion.button
+          <button
             key={search.name}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.7 + idx * 0.05 }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-           onClick={() => onSelect(search)}
-
-            className="px-4 py-2 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-sm font-medium shadow-sm hover:bg-orange-100 transition-all duration-300 flex items-center gap-2"
+            onClick={() => onSelect(search)}
+            className="px-4 py-2 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-sm font-medium shadow-sm hover:bg-orange-100 transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95 animate-fade-in"
+            style={{ animationDelay: `${0.4 + idx * 0.05}s` }}
           >
             <span>{search.emoji}</span>
             {search.name}
-          </motion.button>
+          </button>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -465,7 +331,7 @@ export default function Hero() {
       return;
     }
 
-    const payload = {
+     const payload = {
       destination,
       budget,
       tripType,
@@ -476,49 +342,36 @@ export default function Hero() {
     let success = false;
     let data = null;
 
-    // Show the loading modal immediately
     setShowModal(true);
 
     while (attempts < maxAttempts && !success) {
       try {
         attempts++;
-
         const res = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-
         data = await res.json();
-
         if (res.ok && data.output) {
           success = true;
           break;
         }
-
-        // Delay before retry (to reduce API spam)
         await new Promise((resolve) => setTimeout(resolve, 1200));
       } catch (err) {
-        // Retry again
         await new Promise((resolve) => setTimeout(resolve, 1200));
       }
     }
 
     if (!success) {
       setShowModal(false);
-
-      alert(
-        "TripLinkers is experiencing heavy traffic right now. Many travelers are generating itineraries at the same time. Please try again in a moment."
-      );
-
+      alert("TripLinkers is experiencing heavy traffic right now. Please try again.");
       return;
     }
 
-    // SUCCESS path
     localStorage.setItem("trip_data", data.output);
     localStorage.setItem("trip_provider", data.provider || "gemini");
 
-    // keep showing the modal briefly for premium feel
     setTimeout(() => {
       setShowModal(false);
       setTimeout(() => {
@@ -543,66 +396,48 @@ export default function Hero() {
   return (
     <>
       <section
-        className="relative w-full overflow-hidden min-h-[600px] md:min-h-[700px] lg:min-h-[550px] bg-black"
+        className="relative w-full overflow-hidden min-h-[600px] md:min-h-[700px] lg:min-h-[550px] bg-black flex flex-col justify-center"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 h-full w-full">
           {images.map((img, idx) => (
-            <motion.div
+            <div
               key={idx}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{
-                opacity: current === idx ? 1 : 0,
-                scale: current === idx ? 1 : 1.1,
-              }}
-              transition={{
-                duration: 1.5,
-                ease: [0.43, 0.13, 0.23, 0.96],
-              }}
-              className="absolute inset-0"
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                current === idx ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
             >
               <Image
                 src={img}
                 alt="Travel Destination"
                 fill
-                className="object-cover"
+                className={`object-cover transition-transform duration-[10000ms] ease-out ${
+                  current === idx ? "scale-110" : "scale-100"
+                }`}
                 priority={idx === current}
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-            </motion.div>
+            </div>
           ))}
 
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
             {images.map((_, idx) => (
-              <motion.button
+              <button
                 key={idx}
                 onClick={() => setCurrent(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   current === idx ? "w-8 bg-white" : "w-1.5 bg-white/50"
                 }`}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
           </div>
         </div>
 
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            className="text-center mb-8 md:mb-10"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="inline-block mb-4"
-            ></motion.div>
+        <div className="relative z-20 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-12 pt-24 md:pt-28 lg:pt-20 w-full">
+          <div className="text-center mb-8 md:mb-10 animate-fade-in-up">
             <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-2xl mb-4 md:mb-5">
               Plan Your{" "}
               <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
@@ -611,23 +446,13 @@ export default function Hero() {
               with AI.
             </h1>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-white/95 text-base md:text-lgx lg:text-xl max-w-3xl mx-auto font-light tracking-wide drop-shadow-lg leading-relaxed"
-            >
+            <p className="text-white/95 text-base md:text-lg lg:text-xl max-w-3xl mx-auto font-light tracking-wide drop-shadow-lg leading-relaxed">
               AI-powered personalized itineraries with cost estimations and
               intelligent trip planning for every traveler
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-            className="w-full max-w-6xl"
-          >
+          <div className="w-full max-w-6xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="bg-white/95 backdrop-blur-3xl rounded-3xl shadow-2xl p-6 md:p-8 lg:p-10 border border-white/60 hover:shadow-orange-500/20 hover:shadow-3xl transition-all duration-500">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6">
                 <div className="flex flex-col">
@@ -637,11 +462,8 @@ export default function Hero() {
                   </label>
                   <FreePlacesAutocomplete
                     value={destination}
-               onChange={(item) => {
-    setDestination(item);
-  }}
+                    onChange={(item) => setDestination(item)}
                     placeholder="Where to?"
-                    className="font-karla"
                   />
                 </div>
 
@@ -691,28 +513,21 @@ export default function Hero() {
                 </div>
 
                 <div className="flex items-end">
-                  <motion.button
+                  <button
                     onClick={handleGenerate}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r font-karla cursor-pointer from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 shadow-xl hover:shadow-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-orange-300"
+                    className="w-full bg-gradient-to-r font-karla cursor-pointer from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 shadow-xl hover:shadow-2xl transition-all duration-300 transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-orange-300"
                   >
                     <Search className="w-5 h-5" />
                     Generate Plan
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
               <PopularSearches onSelect={handlePopularSearch} />
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.9 }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-4 text-white/90 text-sm"
-          >
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-white/90 text-sm animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-white flex items-center justify-center text-xs font-bold shadow-lg">
@@ -733,7 +548,7 @@ export default function Hero() {
             <span className="font-medium font-karla">
               Trusted by 50,000+ travelers
             </span>
-          </motion.div>
+          </div>
         </div>
       </section>
 

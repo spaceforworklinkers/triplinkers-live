@@ -2,7 +2,7 @@
 
 import "./globals.css";
 import RootShell from "@/components/RootShell";
-import TripBotFloating from "@/components/TripBotFloating";
+import TripLeadAssistant from "@/components/TripLeadAssistant";
 
 import { Suspense, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
           <RootShell>{children}</RootShell>
 
           {/* Floating widgets */}
-                {/* {!isAdminRoute && <TripBotFloating />}  */}
+                {!isAdminRoute && <TripLeadAssistant />}
         </Suspense>
       </body>
     </html>

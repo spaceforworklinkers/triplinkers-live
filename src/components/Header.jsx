@@ -14,6 +14,7 @@ const Header = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -46,6 +47,20 @@ const Header = () => {
     }
   }, [pathname, searchParams, router]);
 
+  // Handle scroll for navbar style changes
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const navLinks = [
     { name: "Home", href: "/", icon: Home },
     { name: "Packages", href: "/packages", icon: Package },
@@ -57,8 +72,12 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 transition-all duration-300">
-        <nav className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 transition-all duration-300">
+        <nav className={`max-w-7xl mx-auto backdrop-blur-md shadow-lg rounded-2xl px-4 md:px-6 h-16 md:h-18 flex items-center justify-between transition-all duration-500 ${
+          isScrolled 
+            ? "bg-white/95 border border-gray-200/50" 
+            : "bg-white/10 border border-white/20"
+        }`}>
           
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 relative z-[60]">
@@ -78,10 +97,14 @@ const Header = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-semibold tracking-wide transition-colors ${
-                  pathname === link.href
-                    ? "text-orange-600"
-                    : "text-gray-600 hover:text-orange-500"
+                className={`text-sm font-bold tracking-wide transition-all duration-500 ${
+                  isScrolled
+                    ? pathname === link.href
+                      ? "text-orange-600 scale-105"
+                      : "text-gray-700 hover:text-orange-500 hover:scale-105"
+                    : pathname === link.href
+                      ? "text-orange-300 scale-105 drop-shadow-lg"
+                      : "text-white hover:text-orange-200 hover:scale-105 drop-shadow-lg"
                 }`}
               >
                 {link.name}
@@ -93,7 +116,11 @@ const Header = () => {
           <div className="hidden lg:flex items-center gap-4">
              <button
               onClick={() => setModalOpen(true)}
-              className="bg-gray-900 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transform transition-all active:scale-95 duration-200"
+              className={`px-6 py-2.5 rounded-full text-sm font-bold shadow-xl hover:shadow-2xl transform transition-all active:scale-95 duration-500 border-2 ${
+                isScrolled
+                  ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-400 hover:border-orange-500"
+                  : "bg-white hover:bg-orange-500 text-gray-900 hover:text-white border-white/50 hover:border-orange-400"
+              }`}
             >
               Get Quote
             </button>
@@ -102,10 +129,16 @@ const Header = () => {
           {/* Mobile Menu Toggle Button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors relative z-[60]"
+            className={`lg:hidden p-2 rounded-lg transition-all duration-500 relative z-[60] backdrop-blur-sm ${
+              isScrolled
+                ? "text-gray-700 hover:bg-gray-100"
+                : "text-white hover:bg-white/20"
+            }`}
             aria-label="Open menu"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className={`w-6 h-6 transition-all duration-500 ${
+              isScrolled ? "" : "drop-shadow-lg"
+            }`} />
           </button>
         </nav>
       </header>

@@ -436,7 +436,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative z-20 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-12 pt-24 md:pt-28 lg:pt-20 w-full">
+        <div className="relative z-20 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-12 pt-28 md:pt-32 lg:pt-36 w-full">
           <div className="text-center mb-8 md:mb-10 animate-fade-in-up">
             <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-2xl mb-4 md:mb-5">
               Plan Your{" "}
